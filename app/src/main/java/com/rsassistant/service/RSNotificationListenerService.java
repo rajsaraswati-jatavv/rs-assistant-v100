@@ -5,11 +5,11 @@ import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
-public class NotificationListenerService extends NotificationListenerService {
+public class RSNotificationListenerService extends NotificationListenerService {
 
-    private static NotificationListenerService instance;
+    private static RSNotificationListenerService instance;
 
-    public static NotificationListenerService getInstance() {
+    public static RSNotificationListenerService getInstance() {
         return instance;
     }
 
@@ -56,6 +56,7 @@ public class NotificationListenerService extends NotificationListenerService {
         cancelAllNotifications();
     }
 
+    @Override
     public StatusBarNotification[] getActiveNotifications() {
         return super.getActiveNotifications();
     }

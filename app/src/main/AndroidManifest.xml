@@ -181,7 +181,7 @@
 
         <!-- Notification Listener Service -->
         <service
-            android:name=".service.NotificationListenerService"
+            android:name=".service.RSNotificationListenerService"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
