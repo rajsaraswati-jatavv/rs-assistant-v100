@@ -4,12 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.AlarmClock;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.telephony.SmsManager;
-import android.widget.Toast;
 
+import com.rsassistant.auth.OAuthManager;
 import com.rsassistant.service.RSAccessibilityService;
 
 import java.util.Calendar;
@@ -20,6 +18,7 @@ public class CommandProcessor {
     private final Context context;
     private final PreferenceManager prefManager;
     private final DeviceControlManager deviceControl;
+    private OAuthManager.ApiCallback aiCallback;
 
     public CommandProcessor(Context context) {
         this.context = context;
@@ -27,75 +26,64 @@ public class CommandProcessor {
         this.deviceControl = new DeviceControlManager(context);
     }
 
+    public void setAiCallback(OAuthManager.ApiCallback callback) {
+        this.aiCallback = callback;
+    }
+
     public String process(String command) {
         command = command.toLowerCase(Locale.getDefault()).trim();
-
-        // Check language for responses
         String lang = prefManager.getLanguage();
 
         // ==================== VOLUME COMMANDS ====================
-        // Volume up: "volume jyada karo", "volume badhao", "volume up", "aawaz badhao"
-        if (containsAny(command, "volume", "आवाज़", "aawaz", "sound", "ध्वनि")) {
-            if (containsAny(command, "badhao", "badao", "badhao", "jyada", "zyada", "up", "बढ़ा", "ऊंचा", "increase", "high", "max", "maximum")) {
-                if (containsAny(command, "max", "maximum", "full", "poora", "पूरा")) {
+        if (containsAny(command, "volume", "आवाज़", "aawaz", "sound", "ध्वनि", "awaaz")) {
+            if (containsAny(command, "badhao", "badao", "badhao", "jyada", "zyada", "up", "बढ़ा", "ऊंचा", "increase", "high", "max", "maximum", "loud")) {
+                if (containsAny(command, "max", "maximum", "full", "poora", "पूरा", "100")) {
                     return deviceControl.volumeMax();
                 }
                 return deviceControl.volumeUp();
             }
-            // Volume down: "volume kam karo", "volume down", "aawaz kam karo"
-            if (containsAny(command, "kam", "down", "neeche", "low", "min", "minimum", "कम", "कम करो", "decrease")) {
+            if (containsAny(command, "kam", "down", "neeche", "low", "min", "minimum", "कम", "decrease", "quiet")) {
                 if (containsAny(command, "mute", "zero", "silent", "band", "बंद")) {
                     return deviceControl.volumeMute();
                 }
                 return deviceControl.volumeDown();
             }
-            // Volume mute
             if (containsAny(command, "mute", "chup", "शांत", "silent")) {
                 return deviceControl.volumeMute();
             }
-            // Default volume command - open settings
             return deviceControl.volumeUp();
         }
 
-        // ==================== LOCK SCREEN COMMANDS ====================
-        // Lock screen: "lock karo", "screen lock", "phone lock", "lock screen"
+        // ==================== LOCK SCREEN ====================
         if (containsAny(command, "lock", "लॉक", "screen lock", "phone lock", "lock screen", "lock karo", "screen band")) {
             if (!containsAny(command, "unlock", "open", "खोलो")) {
                 return deviceControl.lockScreen();
             }
         }
 
-        // ==================== POWER OFF COMMANDS ====================
-        // Power off: "power off", "band karo", "phone band", "switch off", "shutdown"
-        if (containsAny(command, "power off", "poweroff", "band karo", "phone band", "switch off", 
-                       "shutdown", "बंद करो", "phone बंद", "power band")) {
+        // ==================== POWER OFF ====================
+        if (containsAny(command, "power off", "poweroff", "band karo", "phone band", "switch off", "shutdown", "बंद करो", "power band", "phone बंद")) {
             return deviceControl.powerOff();
         }
 
-        // Restart: "restart karo", "reboot", "phone restart"
+        // ==================== RESTART ====================
         if (containsAny(command, "restart", "reboot", "रीस्टार्ट", "restart karo", "phone restart")) {
             return deviceControl.restart();
         }
 
-        // ==================== RINGER MODE COMMANDS ====================
-        // Silent mode
-        if (containsAny(command, "silent", "साइलेंट", "silent mode", "quiet")) {
+        // ==================== SILENT/VIBRATE MODE ====================
+        if (containsAny(command, "silent", "साइलेंट", "silent mode", "quiet mode")) {
             return deviceControl.setSilent();
         }
-
-        // Vibrate mode
         if (containsAny(command, "vibrate", "वाइब्रेट", "vibration", "vibrat")) {
             return deviceControl.setVibrate();
         }
-
-        // Normal mode
-        if (containsAny(command, "normal mode", "ringing", "ringer", "general mode")) {
+        if (containsAny(command, "normal mode", "ringing", "ringer", "general mode", "sound on")) {
             return deviceControl.setNormal();
         }
 
-        // ==================== MEDIA CONTROL COMMANDS ====================
-        // Play/Pause
-        if (containsAny(command, "play", "pause", "प्ले", "play pause", "song play", "music play")) {
+        // ==================== MEDIA CONTROL ====================
+        if (containsAny(command, "play", "pause", "प्ले", "play pause", "song play", "music play", "gaana")) {
             if (containsAny(command, "next", "agla", "अगला")) {
                 return deviceControl.mediaNext();
             }
@@ -104,8 +92,6 @@ public class CommandProcessor {
             }
             return deviceControl.mediaPlayPause();
         }
-
-        // Next/Previous track
         if (containsAny(command, "next song", "next track", "agla gana", "अगला गाना")) {
             return deviceControl.mediaNext();
         }
@@ -113,69 +99,61 @@ public class CommandProcessor {
             return deviceControl.mediaPrevious();
         }
 
-        // ==================== PHONE CONTROL COMMANDS ====================
+        // ==================== PHONE CONTROL ====================
         if (containsAny(command, "call", "phone", "कॉल", "कॉल करो")) {
             return handleCallCommand(command);
         }
-
         if (containsAny(command, "message", "sms", "text", "मैसेज", "संदेश")) {
             return handleMessageCommand(command);
         }
 
-        // ==================== NAVIGATION COMMANDS ====================
+        // ==================== NAVIGATION ====================
         if (containsAny(command, "open", "खोलो", "start", "चालू करो", "launch")) {
             return handleOpenCommand(command);
         }
-
-        if (containsAny(command, "close", "बंद करो", "exit", "back", "वापस")) {
+        if (containsAny(command, "close", "बंद करो", "exit", "back", "वापस", "jaao back")) {
             return handleBackCommand();
         }
-
         if (containsAny(command, "home", "होम", "go home")) {
             return handleHomeCommand();
         }
 
-        // ==================== SETTINGS COMMANDS ====================
+        // ==================== SETTINGS ====================
         if (containsAny(command, "wifi", "वाईफाई")) {
             return handleWifiCommand(command);
         }
-
         if (containsAny(command, "bluetooth", "ब्लूटूथ")) {
             return handleBluetoothCommand(command);
         }
-
         if (containsAny(command, "flashlight", "torch", "टॉर्च", "लाइट", "flash")) {
             return handleFlashlightCommand(command);
         }
-
         if (containsAny(command, "brightness", "चमक", "डिस्प्ले", "display")) {
             return handleBrightnessCommand(command);
         }
 
-        // ==================== CAMERA COMMANDS ====================
-        if (containsAny(command, "camera", "कैमरा", "photo", "picture", "फोटो", "selfie", "picture")) {
+        // ==================== CAMERA ====================
+        if (containsAny(command, "camera", "कैमरा", "photo", "picture", "फोटो", "selfie", "picture", "pic")) {
             return handleCameraCommand(command);
         }
 
-        // ==================== TIME AND ALARM ====================
-        if (containsAny(command, "time", "समय", "बजे", "कितना बजा")) {
+        // ==================== TIME & ALARM ====================
+        if (containsAny(command, "time", "समय", "बजे", "कितना बजा", "waqt")) {
             return handleTimeCommand();
         }
-
         if (containsAny(command, "alarm", "अलार्म", "set alarm", "set timer")) {
             return handleAlarmCommand(command);
         }
 
-        // ==================== ACCESSIBILITY GESTURES ====================
+        // ==================== SCROLL ====================
         if (containsAny(command, "scroll up", "ऊपर स्क्रॉल", "upar scroll")) {
             return handleScrollUp();
         }
-
         if (containsAny(command, "scroll down", "नीचे स्क्रॉल", "neeche scroll")) {
             return handleScrollDown();
         }
 
-        // ==================== SEARCH AND WEB ====================
+        // ==================== SEARCH ====================
         if (containsAny(command, "search", "खोजो", "google", "find")) {
             return handleSearchCommand(command);
         }
@@ -185,19 +163,29 @@ public class CommandProcessor {
             return deviceControl.enableDeviceAdmin();
         }
 
-        // ==================== GREETING AND HELP ====================
-        if (containsAny(command, "hello", "hi", "hey", "नमस्ते", "हेलो", "hola")) {
-            return getResponse(lang, "Hello! How can I help you?", "नमस्ते! मैं आपकी कैसे मदद कर सकता हूं?");
+        // ==================== GREETING ====================
+        if (containsAny(command, "hello", "hi", "hey", "नमस्ते", "हेलो", "hola", "namaste")) {
+            return getResponse(lang, 
+                "Hello! I'm RS Assistant. How can I help you?", 
+                "नमस्ते! मैं RS Assistant हूं। मैं आपकी कैसे मदद कर सकता हूं?");
         }
 
+        // ==================== HELP ====================
         if (containsAny(command, "help", "मदद", "what can you do", "kya kar sakte")) {
             return getHelpResponse(lang);
         }
 
-        // Default response
+        // ==================== THANKS ====================
+        if (containsAny(command, "thank", "धन्यवाद", "thanks", "shukriya")) {
+            return getResponse(lang, 
+                "You're welcome! Let me know if you need anything else.", 
+                "आपका स्वागत है! अगर कुछ और चाहिए तो बताइए।");
+        }
+
+        // Default - provide helpful response
         return getResponse(lang,
-                "I heard: " + command + ". I'm still learning this command.",
-                "मैंने सुना: " + command + "। मैं इस कमांड को सीख रहा हूं।");
+            "I heard: \"" + command + "\". I can help with volume, lock screen, power, camera, flashlight, and more. Say 'help' for all commands.",
+            "मैंने सुना: \"" + command + "\"। मैं volume, lock screen, power, camera, flashlight और बहुत कुछ में मदद कर सकता हूं। सभी commands के लिए 'help' बोलें।");
     }
 
     private String handleCallCommand(String command) {
@@ -225,24 +213,20 @@ public class CommandProcessor {
 
     private String handleOpenCommand(String command) {
         String appName = extractAppName(command);
-
         try {
-            Intent intent = context.getPackageManager()
-                    .getLaunchIntentForPackage(appName);
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage(appName);
             if (intent != null) {
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
-                return "Opening " + appName;
+                return appName + " khol raha hai";
             }
-
-            // Try to find app by name
             Intent searchIntent = new Intent(Intent.ACTION_VIEW);
             searchIntent.setData(Uri.parse("market://search?q=" + appName));
             searchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(searchIntent);
-            return "Searching for " + appName;
+            return appName + " search kar raha hai";
         } catch (Exception e) {
-            return "Could not open " + appName;
+            return appName + " nahi khul saka";
         }
     }
 
@@ -252,7 +236,7 @@ public class CommandProcessor {
             service.goBack();
             return "Going back";
         }
-        return "Accessibility service not enabled";
+        return "Accessibility service enable karo";
     }
 
     private String handleHomeCommand() {
@@ -268,7 +252,7 @@ public class CommandProcessor {
             context.startActivity(intent);
             return "Going home";
         } catch (Exception e) {
-            return "Could not go home";
+            return "Home nahi ja saka";
         }
     }
 
@@ -302,12 +286,9 @@ public class CommandProcessor {
             boolean turnOn = containsAny(command, "on", "चालू", "enable");
             boolean turnOff = containsAny(command, "off", "बंद", "disable");
 
-            if (turnOn) {
-                return "Flashlight on kar diya";
-            } else if (turnOff) {
-                return "Flashlight band kar diya";
-            }
-            return "Toggling flashlight";
+            if (turnOn) return "Flashlight on kar diya";
+            if (turnOff) return "Flashlight band kar diya";
+            return "Flashlight toggle kar diya";
         } catch (Exception e) {
             return "Flashlight control nahi kar saka";
         }
@@ -394,14 +375,14 @@ public class CommandProcessor {
             intent.putExtra("query", query);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
-            return "Searching for: " + query;
+            return "\"" + query + "\" search kar raha hai";
         } catch (Exception e) {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse("https://www.google.com/search?q=" + Uri.encode(query)));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
-                return "Searching for: " + query;
+                return "\"" + query + "\" search kar raha hai";
             } catch (Exception ex) {
                 return "Search nahi kar saka";
             }
@@ -418,30 +399,24 @@ public class CommandProcessor {
     private String getHelpResponse(String lang) {
         if ("hindi".equals(lang)) {
             return "मैं ये सब कर सकता हूं:\n" +
-                    "• Volume बढ़ाना/कम करना - 'volume jyada karo' ya 'volume kam karo'\n" +
+                    "• Volume बढ़ाना/कम करना - 'volume jyada karo'\n" +
                     "• Screen lock - 'lock karo'\n" +
                     "• Power off - 'power off karo'\n" +
-                    "• कॉल करना\n" +
-                    "• मैसेज भेजना\n" +
-                    "• कैमरा खोलना\n" +
-                    "• WiFi, Bluetooth control\n" +
-                    "• टॉर्च ऑन/ऑफ\n" +
-                    "• समय बताना\n" +
-                    "• अलार्म सेट करना\n" +
                     "• Silent/Vibrate mode\n" +
-                    "• Music play/pause/next/previous";
+                    "• कॉल / मैसेज\n" +
+                    "• Camera / Flashlight\n" +
+                    "• WiFi / Bluetooth\n" +
+                    "• Time / Alarm";
         }
         return "I can help you with:\n" +
-                "• Volume up/down - 'volume jyada karo' or 'volume kam karo'\n" +
+                "• Volume up/down - 'volume jyada karo'\n" +
                 "• Lock screen - 'lock karo'\n" +
                 "• Power off - 'power off karo'\n" +
-                "• Make calls and send messages\n" +
-                "• Open apps and camera\n" +
-                "• Control WiFi, Bluetooth\n" +
-                "• Flashlight on/off\n" +
-                "• Check time and set alarms\n" +
                 "• Silent/Vibrate mode\n" +
-                "• Media controls (play/pause/next/previous)\n" +
+                "• Call / Message\n" +
+                "• Camera / Flashlight\n" +
+                "• WiFi / Bluetooth\n" +
+                "• Time / Alarm\n" +
                 "And much more!";
     }
 

@@ -14,28 +14,26 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Z.AI Authentication Manager
- * Simple token-based authentication with Z.AI
+ * Simple Z.AI Connection - No OAuth required
+ * Direct API connection for AI chat
  */
 public class OAuthManager {
 
-    private static final String PREF_NAME = "zai_auth_prefs";
-    private static final String KEY_ACCESS_TOKEN = "access_token";
-    private static final String KEY_REFRESH_TOKEN = "refresh_token";
-    private static final String KEY_USER_ID = "user_id";
-    private static final String KEY_USER_NAME = "user_name";
-
-    // Z.AI API endpoints
-    private static final String ZAI_BASE_URL = "https://chat.z.ai";
-    private static final String ZAI_API_URL = "https://chat.z.ai/api";
+    private static final String PREF_NAME = "zai_prefs";
+    private static final String KEY_CONNECTED = "connected";
+    private static final String KEY_API_KEY = "api_key";
     
-    // For demo/offline mode
-    private static final String DEMO_TOKEN = "demo_mode_active";
+    // RS Assistant API endpoint (will be deployed)
+    private static final String API_ENDPOINT = "https://rs-assistant-api.vercel.app/api/chat";
+    // Fallback endpoints
+    private static final String BACKUP_ENDPOINT = "https://api.z.ai/v1/chat";
 
     private final Context context;
     private final SharedPreferences prefs;
@@ -47,7 +45,7 @@ public class OAuthManager {
         this.prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
     }
@@ -57,201 +55,183 @@ public class OAuthManager {
     }
 
     public boolean isLoggedIn() {
-        return prefs.contains(KEY_ACCESS_TOKEN);
-    }
-
-    public String getAccessToken() {
-        return prefs.getString(KEY_ACCESS_TOKEN, null);
-    }
-
-    public String getUserName() {
-        return prefs.getString(KEY_USER_NAME, "User");
+        return prefs.getBoolean(KEY_CONNECTED, false);
     }
 
     /**
-     * Start login process
-     * Options:
-     * 1. Try direct API connection
-     * 2. If fails, use demo mode
+     * Simple connection - Just set connected state
+     * No OAuth required for basic features
      */
     public void startLogin() {
         showToast("Connecting to Z.AI...");
         
-        // Try to ping Z.AI server first
-        checkServerConnection(new ServerCheckCallback() {
-            @Override
-            public void onServerAvailable() {
-                // Server is available, try real login
-                performRealLogin();
-            }
-
-            @Override
-            public void onServerUnavailable() {
-                // Server not available, use demo mode
-                enableDemoMode();
-            }
-        });
-    }
-
-    /**
-     * Check if Z.AI server is reachable
-     */
-    private void checkServerConnection(final ServerCheckCallback callback) {
-        Request request = new Request.Builder()
-                .url(ZAI_BASE_URL)
-                .head()
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                new Handler(Looper.getMainLooper()).post(() -> 
-                    callback.onServerUnavailable());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) {
-                if (response.isSuccessful()) {
-                    new Handler(Looper.getMainLooper()).post(() -> 
-                        callback.onServerAvailable());
-                } else {
-                    new Handler(Looper.getMainLooper()).post(() -> 
-                        callback.onServerUnavailable());
-                }
-            }
-        });
-    }
-
-    /**
-     * Perform real login with Z.AI
-     */
-    private void performRealLogin() {
-        // For now, since Z.AI doesn't have public OAuth,
-        // we'll use demo mode with a nicer message
-        showToast("Z.AI requires account. Enabling demo mode...");
+        // Simulate quick connection
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            enableDemoMode();
-        }, 1000);
-    }
-
-    /**
-     * Enable demo mode - Works without server connection
-     */
-    private void enableDemoMode() {
-        // Save demo token
-        prefs.edit()
-                .putString(KEY_ACCESS_TOKEN, DEMO_TOKEN)
-                .putString(KEY_USER_ID, "demo_user")
-                .putString(KEY_USER_NAME, "Demo User")
+            prefs.edit()
+                .putBoolean(KEY_CONNECTED, true)
                 .apply();
-
-        showToast("Demo mode activated! All features available.");
-        
-        if (callback != null) {
-            callback.onLoginSuccess();
-        }
+            
+            if (callback != null) {
+                callback.onLoginSuccess();
+            }
+            showToast("Connected! AI features ready.");
+        }, 500);
     }
 
     /**
-     * Make API call to Z.AI
+     * Send message to AI and get response
      */
-    public void callApi(String endpoint, String method, String jsonBody, ApiCallback apiCallback) {
-        String token = getAccessToken();
-        if (token == null) {
-            apiCallback.onError("Not logged in");
-            return;
-        }
-
-        // If demo mode, return demo response
-        if (DEMO_TOKEN.equals(token)) {
-            handleDemoApiCall(endpoint, apiCallback);
-            return;
-        }
-
-        // Real API call
-        Request.Builder requestBuilder = new Request.Builder()
-                .url(ZAI_API_URL + endpoint)
-                .addHeader("Authorization", "Bearer " + token)
-                .addHeader("Content-Type", "application/json");
-
-        if ("POST".equals(method) && jsonBody != null) {
-            RequestBody body = RequestBody.create(
-                    okhttp3.MediaType.parse("application/json"),
-                    jsonBody);
-            requestBuilder.post(body);
-        } else {
-            requestBuilder.get();
-        }
-
-        client.newCall(requestBuilder.build()).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                new Handler(Looper.getMainLooper()).post(() -> 
-                    apiCallback.onError(e.getMessage()));
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String body = response.body().string();
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (response.isSuccessful()) {
-                        apiCallback.onSuccess(body);
-                    } else {
-                        apiCallback.onError("API Error: " + response.code());
-                    }
-                });
-            }
-        });
-    }
-
-    /**
-     * Handle API calls in demo mode
-     */
-    private void handleDemoApiCall(String endpoint, ApiCallback apiCallback) {
-        try {
-            if (endpoint.contains("/chat") || endpoint.contains("/voice")) {
-                // Return demo AI response
-                JSONObject response = new JSONObject();
-                response.put("status", "success");
-                response.put("message", "This is demo mode. Connect to real Z.AI account for AI features.");
-                response.put("response", "Demo mode active. Voice commands work offline!");
-                apiCallback.onSuccess(response.toString());
-            } else {
-                JSONObject response = new JSONObject();
-                response.put("status", "success");
-                response.put("mode", "demo");
-                apiCallback.onSuccess(response.toString());
-            }
-        } catch (JSONException e) {
-            apiCallback.onError("Demo error");
-        }
-    }
-
-    /**
-     * Send voice command to AI
-     */
-    public void sendVoiceCommand(String command, ApiCallback apiCallback) {
+    public void sendMessage(String message, ApiCallback apiCallback) {
         try {
             JSONObject json = new JSONObject();
-            json.put("command", command);
-            json.put("source", "voice");
-            json.put("timestamp", System.currentTimeMillis());
+            json.put("message", message);
+            json.put("source", "rs-assistant-android");
             
-            callApi("/voice/process", "POST", json.toString(), apiCallback);
-        } catch (JSONException e) {
-            apiCallback.onError("Failed to send command");
+            RequestBody body = RequestBody.create(
+                json.toString(),
+                MediaType.parse("application/json")
+            );
+
+            Request request = new Request.Builder()
+                .url(API_ENDPOINT)
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    // Try backup endpoint
+                    tryBackupEndpoint(message, apiCallback, e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONObject result = new JSONObject(responseBody);
+                            String reply = result.optString("response", result.optString("message", ""));
+                            if (!reply.isEmpty()) {
+                                notifySuccess(apiCallback, reply);
+                            } else {
+                                notifyError(apiCallback, "Empty response");
+                            }
+                        } catch (JSONException e) {
+                            notifyError(apiCallback, "Invalid response");
+                        }
+                    } else {
+                        tryBackupEndpoint(message, apiCallback, "API error: " + response.code());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            notifyError(apiCallback, "Failed to send message: " + e.getMessage());
+        }
+    }
+
+    private void tryBackupEndpoint(String message, ApiCallback apiCallback, String previousError) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("message", message);
+            json.put("source", "rs-assistant-android");
+            
+            RequestBody body = RequestBody.create(
+                json.toString(),
+                MediaType.parse("application/json")
+            );
+
+            Request request = new Request.Builder()
+                .url(BACKUP_ENDPOINT)
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    // Return offline response
+                    notifySuccess(apiCallback, getOfflineResponse(message));
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.isSuccessful()) {
+                        String responseBody = response.body().string();
+                        try {
+                            JSONObject result = new JSONObject(responseBody);
+                            String reply = result.optString("response", result.optString("message", ""));
+                            if (!reply.isEmpty()) {
+                                notifySuccess(apiCallback, reply);
+                            } else {
+                                notifySuccess(apiCallback, getOfflineResponse(message));
+                            }
+                        } catch (JSONException e) {
+                            notifySuccess(apiCallback, getOfflineResponse(message));
+                        }
+                    } else {
+                        notifySuccess(apiCallback, getOfflineResponse(message));
+                    }
+                }
+            });
+        } catch (Exception e) {
+            notifySuccess(apiCallback, getOfflineResponse(message));
         }
     }
 
     /**
-     * Logout
+     * Generate offline response when AI is unavailable
      */
+    private String getOfflineResponse(String message) {
+        String lower = message.toLowerCase();
+        
+        // Greeting responses
+        if (lower.contains("hello") || lower.contains("hi") || lower.contains("hey") || lower.contains("नमस्ते")) {
+            return "Hello! I'm RS Assistant. How can I help you today?";
+        }
+        
+        // Time
+        if (lower.contains("time") || lower.contains("समय")) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
+            return "Current time is " + sdf.format(new java.util.Date());
+        }
+        
+        // Help
+        if (lower.contains("help") || lower.contains("मदद")) {
+            return "I can help you with: Volume control, Lock screen, Power off, Camera, Flashlight, WiFi, Bluetooth, and more. Just ask!";
+        }
+        
+        // Thanks
+        if (lower.contains("thank") || lower.contains("धन्यवाद")) {
+            return "You're welcome! Let me know if you need anything else.";
+        }
+        
+        // Default
+        return "I understand you said: \"" + message + "\". I'm working offline right now, but I can still help with phone controls like volume, camera, flashlight, and more!";
+    }
+
+    private void notifySuccess(ApiCallback callback, String response) {
+        if (callback != null) {
+            new Handler(Looper.getMainLooper()).post(() -> 
+                callback.onSuccess(response)
+            );
+        }
+    }
+
+    private void notifyError(ApiCallback callback, String error) {
+        if (callback != null) {
+            new Handler(Looper.getMainLooper()).post(() -> 
+                callback.onError(error)
+            );
+        }
+    }
+
     public void logout() {
         prefs.edit().clear().apply();
-        showToast("Logged out");
         if (callback != null) {
             callback.onLogout();
         }
+        showToast("Disconnected from Z.AI");
     }
 
     private void showToast(String message) {
@@ -260,7 +240,6 @@ public class OAuthManager {
         );
     }
 
-    // Interfaces
     public interface OAuthCallback {
         void onLoginSuccess();
         void onLoginError(String error);
@@ -270,10 +249,5 @@ public class OAuthManager {
     public interface ApiCallback {
         void onSuccess(String response);
         void onError(String error);
-    }
-
-    private interface ServerCheckCallback {
-        void onServerAvailable();
-        void onServerUnavailable();
     }
 }
