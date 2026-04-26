@@ -9,26 +9,5 @@
         <expire-password />
         <encrypted-storage />
         <disable-camera />
-        <disable-keyguard-features />
     </uses-policies>
-    <policies>
-        <!-- Lock screen -->
-        <force-lock />
-        <!-- Wipe data -->
-        <wipe-data />
-        <!-- Reset password -->
-        <reset-password />
-        <!-- Limit password -->
-        <limit-password />
-        <!-- Watch login attempts -->
-        <watch-login />
-        <!-- Expire password -->
-        <expire-password />
-        <!-- Encrypted storage -->
-        <encrypted-storage />
-        <!-- Disable camera -->
-        <disable-camera />
-        <!-- Disable keyguard features -->
-        <disable-keyguard-features />
-    </policies>
 </device-admin>
