@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RS Assistant</string>
+    <string name="accessibility_service_description">RS Assistant Accessibility Service enables voice commands to control your phone, perform gestures, and automate tasks.</string>
+    <string name="wake_word">hey assistant</string>
+    <string name="listening">Listening...</string>
+    <string name="speak_now">Speak Now</string>
+    <string name="processing">Processing...</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="permission_required">Permission Required</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="voice_service_running">Voice Service Running</string>
+    <string name="tap_to_stop">Tap to stop</string>
+    <string name="camera_active">Camera Active</string>
+    <string name="gesture_detected">Gesture Detected</string>
+    <string name="oauth_login">Login with Z.AI</string>
+    <string name="logged_in">Logged In</string>
+    <string name="logged_out">Logged Out</string>
+</resources>
