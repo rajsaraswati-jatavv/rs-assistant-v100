@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -16,7 +17,6 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.ServiceCompat;
 
 import com.rsassistant.MainActivity;
 import com.rsassistant.R;
@@ -199,12 +199,11 @@ public class VoiceRecognitionService extends Service implements TextToSpeech.OnI
                 .setOngoing(true)
                 .build();
 
-        int flags = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            flags = ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
         }
-
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, flags);
     }
 
     @Override

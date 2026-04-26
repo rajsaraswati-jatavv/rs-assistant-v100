@@ -12,7 +12,6 @@ import android.os.Build;
 import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.ServiceCompat;
 
 import com.rsassistant.R;
 
@@ -91,12 +90,11 @@ public class CameraService extends Service {
                 .setOngoing(true)
                 .build();
 
-        int flags = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            flags = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
         }
-
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, flags);
     }
 
     @Override
