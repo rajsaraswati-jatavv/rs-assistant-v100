@@ -34,7 +34,7 @@ import com.rsassistant.util.RSDeviceAdminReceiver;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
+public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, OAuthManager.OAuthCallback {
 
     private static final int REQUEST_PERMISSIONS = 100;
     private static final int REQUEST_VOICE = 101;
@@ -62,6 +62,33 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         initServices();
         checkAllPermissions();
         startBackgroundService();
+        
+        // Handle intent if app was opened via deep link
+        handleIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    /**
+     * Handle incoming intents (including OAuth callbacks)
+     */
+    private void handleIntent(Intent intent) {
+        if (intent != null && intent.getData() != null) {
+            Uri uri = intent.getData();
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            
+            // Handle OAuth callback
+            if ("rsassistant".equals(scheme) && "auth".equals(host)) {
+                showToast("Processing Z.AI login...");
+                oauthManager.handleCallback(uri);
+            }
+        }
     }
 
     private void initViews() {
@@ -92,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private void initServices() {
         textToSpeech = new TextToSpeech(this, this);
         oauthManager = new OAuthManager(this);
+        oauthManager.setCallback(this);
         commandProcessor = new CommandProcessor(this);
         deviceControl = new DeviceControlManager(this);
 
@@ -277,7 +305,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private void handleLogin() {
         if (oauthManager.isLoggedIn()) {
             oauthManager.logout();
-            showToast("Logged out");
         } else {
             oauthManager.startLogin();
         }
@@ -286,9 +313,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private void updateLoginStatus() {
         if (oauthManager.isLoggedIn()) {
-            loginButton.setText("Logout from Z.AI");
+            loginButton.setText("✓ Connected to Z.AI");
+            loginButton.setBackgroundColor(getResources().getColor(R.color.listening_active));
         } else {
             loginButton.setText(R.string.oauth_login);
+            loginButton.setBackgroundColor(getResources().getColor(R.color.accent));
         }
     }
 
@@ -315,6 +344,28 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 enableBatteryButton.setEnabled(true);
             }
         }
+    }
+
+    // OAuth Callbacks
+    @Override
+    public void onLoginSuccess() {
+        showToast("Successfully connected to Z.AI!");
+        updateLoginStatus();
+        if (ttsInitialized) {
+            speak("Connected to Z.AI!");
+        }
+    }
+
+    @Override
+    public void onLoginError(String error) {
+        showToast("Login failed: " + error);
+        updateLoginStatus();
+    }
+
+    @Override
+    public void onLogout() {
+        showToast("Logged out from Z.AI");
+        updateLoginStatus();
     }
 
     @Override
