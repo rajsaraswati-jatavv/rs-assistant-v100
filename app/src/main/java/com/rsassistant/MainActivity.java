@@ -1,10 +1,15 @@
 package com.rsassistant;
 
 import android.Manifest;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
@@ -22,7 +27,9 @@ import androidx.core.content.ContextCompat;
 import com.rsassistant.auth.OAuthManager;
 import com.rsassistant.service.VoiceRecognitionService;
 import com.rsassistant.util.CommandProcessor;
+import com.rsassistant.util.DeviceControlManager;
 import com.rsassistant.util.PermissionHelper;
+import com.rsassistant.util.RSDeviceAdminReceiver;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -31,14 +38,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private static final int REQUEST_PERMISSIONS = 100;
     private static final int REQUEST_VOICE = 101;
+    private static final int REQUEST_DEVICE_ADMIN = 102;
+    private static final int REQUEST_BATTERY_OPTIMIZATION = 103;
+    private static final int REQUEST_OVERLAY = 104;
 
     private ImageButton voiceButton;
     private TextView statusText, resultText;
-    private Button settingsButton, cameraButton, loginButton;
+    private Button settingsButton, cameraButton, loginButton, enableAdminButton, enableBatteryButton;
 
     private TextToSpeech textToSpeech;
     private OAuthManager oauthManager;
     private CommandProcessor commandProcessor;
+    private DeviceControlManager deviceControl;
     private boolean isListening = false;
     private boolean ttsInitialized = false;
 
@@ -49,7 +60,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         initViews();
         initServices();
-        checkPermissions();
+        checkAllPermissions();
+        startBackgroundService();
     }
 
     private void initViews() {
@@ -59,22 +71,37 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         settingsButton = findViewById(R.id.settingsButton);
         cameraButton = findViewById(R.id.cameraButton);
         loginButton = findViewById(R.id.loginButton);
+        
+        // Enable Admin Button (if exists in layout)
+        enableAdminButton = findViewById(R.id.enableAdminButton);
+        enableBatteryButton = findViewById(R.id.enableBatteryButton);
 
         voiceButton.setOnClickListener(v -> toggleVoiceRecognition());
         settingsButton.setOnClickListener(v -> openSettings());
         cameraButton.setOnClickListener(v -> openCamera());
         loginButton.setOnClickListener(v -> handleLogin());
+        
+        if (enableAdminButton != null) {
+            enableAdminButton.setOnClickListener(v -> requestDeviceAdmin());
+        }
+        if (enableBatteryButton != null) {
+            enableBatteryButton.setOnClickListener(v -> requestBatteryOptimization());
+        }
     }
 
     private void initServices() {
         textToSpeech = new TextToSpeech(this, this);
         oauthManager = new OAuthManager(this);
         commandProcessor = new CommandProcessor(this);
+        deviceControl = new DeviceControlManager(this);
 
         updateLoginStatus();
+        updateAdminStatus();
+        updateBatteryStatus();
     }
 
-    private void checkPermissions() {
+    private void checkAllPermissions() {
+        // Check runtime permissions
         String[] permissions = PermissionHelper.getRequiredPermissions();
         ArrayList<String> needed = new ArrayList<>();
 
@@ -87,6 +114,65 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         if (!needed.isEmpty()) {
             ActivityCompat.requestPermissions(this,
                     needed.toArray(new String[0]), REQUEST_PERMISSIONS);
+        }
+
+        // Check overlay permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, REQUEST_OVERLAY);
+        }
+
+        // Check battery optimization
+        checkBatteryOptimization();
+
+        // Check device admin
+        if (!deviceControl.isAdminActive()) {
+            // Auto-request device admin
+            requestDeviceAdmin();
+        }
+    }
+
+    private void checkBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                // Request battery optimization exemption
+                requestBatteryOptimization();
+            }
+        }
+    }
+
+    private void requestDeviceAdmin() {
+        if (!deviceControl.isAdminActive()) {
+            Intent intent = deviceControl.getDeviceAdminIntent();
+            startActivityForResult(intent, REQUEST_DEVICE_ADMIN);
+        }
+    }
+
+    private void requestBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivityForResult(intent, REQUEST_BATTERY_OPTIMIZATION);
+                } catch (Exception e) {
+                    // Fallback - open battery settings
+                    Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                    startActivity(intent);
+                }
+            }
+        }
+    }
+
+    private void startBackgroundService() {
+        Intent serviceIntent = new Intent(this, VoiceRecognitionService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
         }
     }
 
@@ -104,6 +190,31 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             if (!allGranted) {
                 showToast("Some permissions are required for full functionality");
             }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_VOICE && resultCode == RESULT_OK && data != null) {
+            ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (results != null && !results.isEmpty()) {
+                String command = results.get(0);
+                processCommand(command);
+            }
+            stopVoiceRecognition();
+        } else if (requestCode == REQUEST_DEVICE_ADMIN) {
+            updateAdminStatus();
+            if (deviceControl.isAdminActive()) {
+                showToast("Device Admin enabled! Now you can use lock screen, power off commands.");
+            }
+        } else if (requestCode == REQUEST_BATTERY_OPTIMIZATION) {
+            updateBatteryStatus();
+        } else if (requestCode == REQUEST_OVERLAY) {
+            // Overlay permission result
+        } else {
+            stopVoiceRecognition();
         }
     }
 
@@ -136,21 +247,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         isListening = false;
         statusText.setText(R.string.speak_now);
         voiceButton.setBackgroundColor(getResources().getColor(R.color.primary));
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_VOICE && resultCode == RESULT_OK && data != null) {
-            ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            if (results != null && !results.isEmpty()) {
-                String command = results.get(0);
-                processCommand(command);
-            }
-        }
-
-        stopVoiceRecognition();
     }
 
     private void processCommand(String command) {
@@ -196,6 +292,31 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
     }
 
+    private void updateAdminStatus() {
+        if (enableAdminButton != null) {
+            if (deviceControl.isAdminActive()) {
+                enableAdminButton.setText("✓ Device Admin Active");
+                enableAdminButton.setEnabled(false);
+            } else {
+                enableAdminButton.setText("Enable Device Admin");
+                enableAdminButton.setEnabled(true);
+            }
+        }
+    }
+
+    private void updateBatteryStatus() {
+        if (enableBatteryButton != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null && pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                enableBatteryButton.setText("✓ Battery Optimization Disabled");
+                enableBatteryButton.setEnabled(false);
+            } else {
+                enableBatteryButton.setText("Disable Battery Optimization");
+                enableBatteryButton.setEnabled(true);
+            }
+        }
+    }
+
     @Override
     public void onInit(int status) {
         if (status == TextToSpeech.SUCCESS) {
@@ -213,6 +334,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     protected void onResume() {
         super.onResume();
         updateLoginStatus();
+        updateAdminStatus();
+        updateBatteryStatus();
     }
 
     @Override

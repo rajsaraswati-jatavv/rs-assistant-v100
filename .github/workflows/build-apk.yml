@@ -1,4 +1,4 @@
-name: Build and Release APK
+name: Build and Release APK v101
 
 on:
   push:
@@ -26,68 +26,88 @@ jobs:
     - name: Build Debug APK
       run: ./gradlew assembleDebug --no-daemon
 
-    - name: Build Release APK
-      run: ./gradlew assembleRelease --no-daemon
-
     - name: Rename APK
       run: |
-        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v100-Debug.apk || true
-        mv app/build/outputs/apk/release/*.apk RS-Assistant-v100-Release.apk || true
+        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v101.apk || true
 
-    - name: Upload Debug APK Artifact
+    - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: RS-Assistant-Debug
-        path: RS-Assistant-v100-Debug.apk
-
-    - name: Upload Release APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: RS-Assistant-Release
-        path: RS-Assistant-v100-Release.apk
+        name: RS-Assistant-v101
+        path: RS-Assistant-v101.apk
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: success()
       with:
-        tag_name: v${{ github.run_number }}
-        name: RS Assistant v100 - Build ${{ github.run_number }}
+        tag_name: v101
+        name: RS Assistant v101 - Volume & Power Control
         body: |
-          ## RS Assistant v100
+          ## RS Assistant v101 - NEW VERSION!
 
-          AI Voice Assistant for Android with complete phone control.
+          AI Voice Assistant for Android with COMPLETE phone control.
+
+          ### 🆕 NEW FEATURES in v101
+          - **Volume Control** - "Volume jyada karo" / "Volume kam karo"
+          - **Lock Screen** - "Lock karo" / "Screen lock"
+          - **Power Off** - "Power off karo" / "Phone band karo"
+          - **Silent/Vibrate Mode** - "Silent mode" / "Vibrate mode"
+          - **Media Controls** - "Play/Pause" / "Next song" / "Previous song"
+          - **Device Admin Integration** - Full device control permissions
+          - **Battery Optimization Bypass** - Always running in background
 
           ### Features
           - Voice Recognition (Hindi/English/Hinglish)
           - Wake Word Detection
           - Phone Control via Accessibility Service
-          - Camera Control
-          - Hand Gesture Detection
+          - Camera Control with Hand Gesture Detection
           - OAuth Authentication via chat.z.ai
           - Background Voice Service
+          - Boot Auto-Start
 
-          ### Voice Commands
+          ### Voice Commands (Hindi/English)
+          **Volume & Sound:**
+          - "Volume jyada karo" / "Volume up" - Increase volume
+          - "Volume kam karo" / "Volume down" - Decrease volume
+          - "Volume full" / "Volume max" - Maximum volume
+          - "Mute karo" / "Silent mode" - Mute/Silent
+          - "Vibrate mode" - Set vibrate mode
+
+          **Phone Control:**
+          - "Lock karo" / "Screen lock" - Lock screen
+          - "Power off karo" - Power menu
+          - "Restart karo" - Restart phone
+
+          **Apps & Settings:**
           - "Call [contact]" - Make phone calls
           - "Message [contact]" - Send messages
           - "Open [app]" - Launch applications
-          - "Flashlight on/off" - Control torch
-          - "WiFi settings" - Open settings
-          - "What time is it" - Get current time
-          - "Scroll up/down" - Navigation gestures
-          - And many more...
+          - "Flashlight on/off" / "Torch on/off" - Control torch
+          - "WiFi settings" / "Bluetooth settings" - Open settings
+          - "Camera kholo" / "Photo lelo" - Open camera
+
+          **Navigation:**
+          - "Back karo" - Go back
+          - "Home karo" - Go home
+          - "Scroll up/down" - Scroll gestures
+
+          **Time & Media:**
+          - "Time batao" / "What time is it" - Get current time
+          - "Play/Pause" - Media control
+          - "Next song" / "Previous song" - Track control
 
           ### Download
-          - **RS-Assistant-v100-Debug.apk** - Debug build with logging
-          - **RS-Assistant-v100-Release.apk** - Optimized release build
+          - **RS-Assistant-v101.apk** - Latest version with all features
 
           ### Requirements
           - Android 7.0 (API 24) or higher
-          - Grant all requested permissions for full functionality
-          - Enable Accessibility Service for phone control features
+          - Grant ALL permissions for full functionality
+          - Enable Accessibility Service for phone control
+          - Enable Device Admin for lock/power features
+          - Disable Battery Optimization for always-running
 
         files: |
-          RS-Assistant-v100-Debug.apk
-          RS-Assistant-v100-Release.apk
+          RS-Assistant-v101.apk
         draft: false
         prerelease: false
       env:
