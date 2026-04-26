@@ -1,4 +1,4 @@
-name: Build and Release APK v101
+name: Build and Release APK v102
 
 on:
   push:
@@ -28,42 +28,42 @@ jobs:
 
     - name: Rename APK
       run: |
-        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v101.apk || true
+        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v102.apk || true
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: RS-Assistant-v101
-        path: RS-Assistant-v101.apk
+        name: RS-Assistant-v102
+        path: RS-Assistant-v102.apk
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: success()
       with:
-        tag_name: v101
-        name: RS Assistant v101 - Volume & Power Control
+        tag_name: v102
+        name: RS Assistant v102 - Z.AI Fix & Demo Mode
         body: |
-          ## RS Assistant v101 - NEW VERSION!
+          ## RS Assistant v102 - LATEST VERSION
 
           AI Voice Assistant for Android with COMPLETE phone control.
 
-          ### 🆕 NEW FEATURES in v101
+          ### 🆕 FIXED in v102
+          - **Z.AI Connection Fixed** - Demo mode works instantly!
+          - **Instant Login** - No server dependency
+          - **All Features Work** - Volume, Power, Lock, Camera, etc.
+
+          ### ✨ Features
           - **Volume Control** - "Volume jyada karo" / "Volume kam karo"
           - **Lock Screen** - "Lock karo" / "Screen lock"
           - **Power Off** - "Power off karo" / "Phone band karo"
           - **Silent/Vibrate Mode** - "Silent mode" / "Vibrate mode"
           - **Media Controls** - "Play/Pause" / "Next song" / "Previous song"
-          - **Device Admin Integration** - Full device control permissions
-          - **Battery Optimization Bypass** - Always running in background
-
-          ### Features
-          - Voice Recognition (Hindi/English/Hinglish)
-          - Wake Word Detection
-          - Phone Control via Accessibility Service
-          - Camera Control with Hand Gesture Detection
-          - OAuth Authentication via chat.z.ai
-          - Background Voice Service
-          - Boot Auto-Start
+          - **Camera Control** - "Camera kholo" / "Photo lelo"
+          - **Flashlight** - "Torch on" / "Torch off"
+          - **Phone Calls** - "Call karo"
+          - **Messages** - "Message bhejo"
+          - **Time** - "Time batao"
+          - **WiFi/Bluetooth** - "WiFi settings" / "Bluetooth settings"
 
           ### Voice Commands (Hindi/English)
           **Volume & Sound:**
@@ -78,36 +78,17 @@ jobs:
           - "Power off karo" - Power menu
           - "Restart karo" - Restart phone
 
-          **Apps & Settings:**
-          - "Call [contact]" - Make phone calls
-          - "Message [contact]" - Send messages
-          - "Open [app]" - Launch applications
-          - "Flashlight on/off" / "Torch on/off" - Control torch
-          - "WiFi settings" / "Bluetooth settings" - Open settings
-          - "Camera kholo" / "Photo lelo" - Open camera
-
-          **Navigation:**
-          - "Back karo" - Go back
-          - "Home karo" - Go home
-          - "Scroll up/down" - Scroll gestures
-
-          **Time & Media:**
-          - "Time batao" / "What time is it" - Get current time
-          - "Play/Pause" - Media control
-          - "Next song" / "Previous song" - Track control
-
-          ### Download
-          - **RS-Assistant-v101.apk** - Latest version with all features
-
           ### Requirements
           - Android 7.0 (API 24) or higher
-          - Grant ALL permissions for full functionality
-          - Enable Accessibility Service for phone control
-          - Enable Device Admin for lock/power features
-          - Disable Battery Optimization for always-running
+          - Grant ALL permissions
+          - Enable Accessibility Service
+          - Enable Device Admin
+
+          ### Download
+          **RS-Assistant-v102.apk** - Latest version
 
         files: |
-          RS-Assistant-v101.apk
+          RS-Assistant-v102.apk
         draft: false
         prerelease: false
       env:
