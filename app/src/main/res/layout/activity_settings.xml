@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RS Assistant Settings"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Voice Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Voice Recognition"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchWakeWord"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable Wake Word (Hey Assistant)"
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchAlwaysOn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Always-On Background Service"
+            android:textColor="@color/white"
+            android:checked="true"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchVoiceResponse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Voice Responses"
+            android:textColor="@color/white"
+            android:checked="true"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Language Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Language"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/languageGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <RadioButton
+                android:id="@+id/radioEnglish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="English"
+                android:textColor="@color/white"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radioHindi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Hindi (हिंदी)"
+                android:textColor="@color/white" />
+
+            <RadioButton
+                android:id="@+id/radioHinglish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Hinglish (Mixed)"
+                android:textColor="@color/white" />
+
+        </RadioGroup>
+
+        <!-- Permissions Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Permissions &amp; Services"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnEnableAccessibility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable Accessibility Service"
+            android:layout_marginBottom="8dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btnBatteryOptimization"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Disable Battery Optimization"
+            android:layout_marginBottom="8dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btnOverlayPermission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Grant Overlay Permission"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <!-- Camera & Gestures -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Camera &amp; Gestures"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchGestureControl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable Hand Gesture Control"
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchFaceDetection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable Face Detection"
+            android:textColor="@color/white"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Account Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Account"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/loginStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status: Not Logged In"
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnLoginLogout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Login with Z.AI" />
+
+    </LinearLayout>
+
+</ScrollView>

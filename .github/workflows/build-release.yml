@@ -1,0 +1,103 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+    - name: Build Release APK
+      run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+    - name: List APK files
+      run: find app/build/outputs -name "*.apk" -type f
+
+    - name: Rename APKs
+      run: |
+        cp app/build/outputs/apk/debug/*.apk RS-Assistant-v101-Debug.apk 2>/dev/null || true
+        cp app/build/outputs/apk/release/*.apk RS-Assistant-v101-Release.apk 2>/dev/null || true
+        ls -la *.apk 2>/dev/null || echo "No APKs found"
+
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: RS-Assistant-Debug
+        path: RS-Assistant-v101-Debug.apk
+        if-no-files-found: ignore
+
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: RS-Assistant-Release
+        path: RS-Assistant-v101-Release.apk
+        if-no-files-found: ignore
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      if: success()
+      with:
+        tag_name: v${{ github.run_number }}
+        name: RS Assistant v101 - Build ${{ github.run_number }}
+        body: |
+          ## RS Assistant v101
+
+          Complete AI Voice Assistant with Always-On Background Service.
+
+          ### Features
+          - Voice Recognition (Hindi/English/Hinglish)
+          - Wake Word Detection ("Hey Assistant")
+          - Always-On Background Service
+          - Phone Control via Accessibility Service
+          - Camera & Flashlight Control
+          - Hand Gesture & Face Detection
+          - Location Tracking
+          - OAuth Authentication
+          - Notification Listener
+          - Auto-restart on boot
+
+          ### Voice Commands
+          - "Call [contact]" - Make phone calls
+          - "Message [contact]" - Send messages
+          - "Open [app]" - Launch applications
+          - "Flashlight on/off" - Control torch
+          - "WiFi/Bluetooth settings" - Open settings
+          - "What time is it" - Get current time
+          - "Scroll up/down" - Navigation gestures
+          - "Take screenshot" - Capture screen
+          - "Search [query]" - Web search
+          - "YouTube [query]" - YouTube search
+          - And many more...
+
+          ### Requirements
+          - Android 7.0 (API 24) or higher
+          - Grant ALL permissions for full functionality
+          - Enable Accessibility Service for phone control
+          - Disable Battery Optimization for always-on service
+
+        files: |
+          RS-Assistant-v101-Debug.apk
+          RS-Assistant-v101-Release.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
