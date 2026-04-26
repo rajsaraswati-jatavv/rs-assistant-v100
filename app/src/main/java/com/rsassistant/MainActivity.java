@@ -75,19 +75,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     }
 
     /**
-     * Handle incoming intents (including OAuth callbacks)
+     * Handle incoming intents
      */
     private void handleIntent(Intent intent) {
         if (intent != null && intent.getData() != null) {
-            Uri uri = intent.getData();
-            String scheme = uri.getScheme();
-            String host = uri.getHost();
-            
-            // Handle OAuth callback
-            if ("rsassistant".equals(scheme) && "auth".equals(host)) {
-                showToast("Processing Z.AI login...");
-                oauthManager.handleCallback(uri);
-            }
+            // Intent handled - connection is automatic now
         }
     }
 
