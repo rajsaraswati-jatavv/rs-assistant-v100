@@ -102,7 +102,11 @@ public class LocationService extends Service {
 
         int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ?
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION : 0;
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, flags);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, flags);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
     @Override

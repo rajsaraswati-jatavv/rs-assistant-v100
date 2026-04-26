@@ -2,11 +2,12 @@ package com.rsassistant.service;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 

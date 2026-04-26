@@ -24,6 +24,7 @@ import androidx.core.app.ServiceCompat;
 
 import com.rsassistant.MainActivity;
 import com.rsassistant.R;
+import com.rsassistant.receiver.ServiceRestartReceiver;
 import com.rsassistant.util.CommandProcessor;
 import com.rsassistant.util.PreferenceManager;
 
@@ -273,7 +274,11 @@ public class CoreService extends Service implements TextToSpeech.OnInitListener 
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
         }
 
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, flags);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, flags);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
     @Override

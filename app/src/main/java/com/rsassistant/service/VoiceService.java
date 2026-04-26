@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -36,7 +37,7 @@ public class VoiceService extends Service implements TextToSpeech.OnInitListener
     private TextToSpeech textToSpeech;
     private CommandProcessor commandProcessor;
     private PreferenceManager prefs;
-    private Handler handler = new Handler(Looper.getMainExecutor());
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     private boolean isListening = false;
     private boolean ttsReady = false;
@@ -135,7 +136,11 @@ public class VoiceService extends Service implements TextToSpeech.OnInitListener
 
         int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ?
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE : 0;
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, flags);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, flags);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
     @Override
