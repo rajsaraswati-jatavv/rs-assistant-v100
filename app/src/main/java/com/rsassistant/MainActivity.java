@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private ImageButton voiceButton;
     private TextView statusText, resultText;
-    private Button settingsButton, cameraButton, loginButton, enableAdminButton, enableBatteryButton, sosButton;
+    private Button settingsButton, cameraButton, loginButton, enableAdminButton, enableBatteryButton;
 
     private TextToSpeech textToSpeech;
     private OAuthManager oauthManager;
@@ -91,9 +91,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         loginButton = findViewById(R.id.loginButton);
         enableAdminButton = findViewById(R.id.enableAdminButton);
         enableBatteryButton = findViewById(R.id.enableBatteryButton);
-        
-        // SOS Button - may or may not exist in layout
-        sosButton = findViewById(R.id.sosButton);
 
         voiceButton.setOnClickListener(v -> toggleVoiceRecognition());
         settingsButton.setOnClickListener(v -> openSettings());
@@ -105,9 +102,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
         if (enableBatteryButton != null) {
             enableBatteryButton.setOnClickListener(v -> requestBatteryOptimization());
-        }
-        if (sosButton != null) {
-            sosButton.setOnClickListener(v -> triggerSOS());
         }
     }
 

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -207,7 +208,9 @@ public class SmartAssistantManager {
         try {
             String saved = prefs.getString(KEY_CUSTOM_COMMANDS, "{}");
             JSONObject json = new JSONObject(saved);
-            for (String key : json.keySet()) {
+            Iterator<String> keys = json.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
                 customCommands.put(key, json.getString(key));
             }
         } catch (Exception e) {
