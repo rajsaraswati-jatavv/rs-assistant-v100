@@ -144,7 +144,7 @@
         <activity
             android:name=".FeaturesScreenActivity"
             android:exported="false"
-            android:label="🧠 Memory & Features"
+            android:label="Memory + Features"
             android:theme="@style/Theme.RSAssistant" />
 
         <!-- Voice Recognition Service -->
