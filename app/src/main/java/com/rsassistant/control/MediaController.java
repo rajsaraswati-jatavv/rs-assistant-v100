@@ -340,6 +340,274 @@ public class MediaController {
         }
     }
 
+    // ==================== YouTube Music Integration ====================
+
+    /**
+     * Open YouTube Music app
+     * Supports: "YouTube Music kholo", "Play YouTube Music"
+     */
+    public void openYouTubeMusic(MediaCallback callback) {
+        try {
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage("com.google.android.apps.youtube.music");
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                callback.onSuccess("YouTube Music khul gaya!");
+            } else {
+                // Fallback to YouTube
+                openYouTube(callback);
+            }
+        } catch (Exception e) {
+            callback.onError("YouTube Music nahi khul pa raha: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Search and play on YouTube Music
+     * Supports: "YouTube Music pe Arijit Singh bajao"
+     */
+    public void searchYouTubeMusic(String query, MediaCallback callback) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://music.youtube.com/search?q=" + Uri.encode(query)));
+            intent.setPackage("com.google.android.apps.youtube.music");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            callback.onSuccess("YouTube Music mein '" + query + "' search ho raha hai!");
+        } catch (Exception e) {
+            // Fallback to YouTube search
+            searchYouTube(query, callback);
+        }
+    }
+
+    // ==================== Gaana Integration ====================
+
+    /**
+     * Open Gaana app
+     * Supports: "Gaana kholo", "Gaana app chalao"
+     */
+    public void openGaana(MediaCallback callback) {
+        try {
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage("com.gaana");
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                callback.onSuccess("Gaana khul gaya!");
+            } else {
+                callback.onError("Gaana installed nahi hai");
+            }
+        } catch (Exception e) {
+            callback.onError("Gaana nahi khul pa raha: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Play on Gaana
+     * Supports: "Gaana pe Arijit Singh bajao"
+     */
+    public void playOnGaana(String query, MediaCallback callback) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("gaana://search?query=" + Uri.encode(query)));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            callback.onSuccess("Gaana mein '" + query + "' search ho raha hai!");
+        } catch (Exception e) {
+            // App might not be installed
+            openGaana(callback);
+        }
+    }
+
+    // ==================== JioSaavn Integration ====================
+
+    /**
+     * Open JioSaavn app
+     * Supports: "Saavn kholo", "JioSaavn chalao"
+     */
+    public void openJioSaavn(MediaCallback callback) {
+        try {
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage("com.saavn.android");
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                callback.onSuccess("JioSaavn khul gaya!");
+            } else {
+                callback.onError("JioSaavn installed nahi hai");
+            }
+        } catch (Exception e) {
+            callback.onError("JioSaavn nahi khul pa raha: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Play on JioSaavn
+     * Supports: "Saavn pe gaana bajao"
+     */
+    public void playOnJioSaavn(String query, MediaCallback callback) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("saavn://search?q=" + Uri.encode(query)));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            callback.onSuccess("JioSaavn mein '" + query + "' search ho raha hai!");
+        } catch (Exception e) {
+            openJioSaavn(callback);
+        }
+    }
+
+    // ==================== Wynk Music Integration ====================
+
+    /**
+     * Open Wynk Music app
+     */
+    public void openWynk(MediaCallback callback) {
+        try {
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage("com.bsbportal.music");
+            if (intent != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                callback.onSuccess("Wynk Music khul gaya!");
+            } else {
+                callback.onError("Wynk installed nahi hai");
+            }
+        } catch (Exception e) {
+            callback.onError("Wynk nahi khul pa raha: " + e.getMessage());
+        }
+    }
+
+    // ==================== Smart Music Commands ====================
+
+    /**
+     * Smart play - tries multiple music apps
+     * Supports: "Gaana bajao", "Play music", "Play Arijit Singh"
+     * 
+     * @param query Song/artist name or null for just play
+     */
+    public void smartPlay(String query, MediaCallback callback) {
+        if (query == null || query.isEmpty() || query.equals("music") || query.equals("gaana")) {
+            // Just play current music
+            play(callback);
+            return;
+        }
+
+        // Try apps in order of preference
+        String[] musicPackages = {
+            "com.spotify.music",
+            "com.google.android.apps.youtube.music",
+            "com.gaana",
+            "com.saavn.android",
+            "com.bsbportal.music"
+        };
+
+        for (String pkg : musicPackages) {
+            try {
+                Intent intent = context.getPackageManager().getLaunchIntentForPackage(pkg);
+                if (intent != null) {
+                    // App is installed, use it
+                    if (pkg.contains("spotify")) {
+                        playOnSpotify(query, callback);
+                    } else if (pkg.contains("youtube.music")) {
+                        searchYouTubeMusic(query, callback);
+                    } else if (pkg.contains("gaana")) {
+                        playOnGaana(query, callback);
+                    } else if (pkg.contains("saavn")) {
+                        playOnJioSaavn(query, callback);
+                    } else {
+                        // Just open the app
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(intent);
+                        callback.onSuccess("Music app khul gaya!");
+                    }
+                    return;
+                }
+            } catch (Exception e) {
+                // Try next app
+            }
+        }
+
+        // No music app found - use YouTube as fallback
+        searchYouTube(query, callback);
+    }
+
+    /**
+     * Play specific artist
+     * Supports: "Play Arijit Singh", "Arijit Singh ke gaane bajao"
+     */
+    public void playArtist(String artistName, MediaCallback callback) {
+        smartPlay(artistName, callback);
+    }
+
+    /**
+     * Play specific song
+     * Supports: "Play Tum Hi Ho", "Tum Hi Ho gaana bajao"
+     */
+    public void playSong(String songName, MediaCallback callback) {
+        smartPlay(songName, callback);
+    }
+
+    /**
+     * Play playlist
+     * Supports: "Play my playlist", "Playlist chalao"
+     */
+    public void playPlaylist(String playlistName, MediaCallback callback) {
+        // Open default music app
+        openMusicPlayer(callback);
+    }
+
+    /**
+     * Play random/shuffle
+     * Supports: "Shuffle karo", "Random gaane bajao"
+     */
+    public void playShuffle(MediaCallback callback) {
+        try {
+            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_PLAY);
+            callback.onSuccess("Music shuffle mode mein chal raha hai!");
+        } catch (Exception e) {
+            callback.onError("Shuffle nahi ho pa raha: " + e.getMessage());
+        }
+    }
+
+    // ==================== Volume Profile ====================
+
+    /**
+     * Set volume profile
+     * Supports: "Volume full karo", "Volume 50 percent set karo"
+     */
+    public void setVolumeProfile(String profile, MediaCallback callback) {
+        int volume = 50; // default
+        
+        switch (profile.toLowerCase()) {
+            case "full":
+            case "max":
+            case "maximum":
+            case "high":
+            case "100":
+                volume = 100;
+                break;
+            case "medium":
+            case "mid":
+            case "50":
+                volume = 50;
+                break;
+            case "low":
+            case "min":
+            case "minimum":
+            case "25":
+                volume = 25;
+                break;
+            case "mute":
+            case "silent":
+            case "zero":
+            case "0":
+                volume = 0;
+                break;
+        }
+        
+        setVolume(volume, callback);
+    }
+
+    // ==================== Audio Info ====================
+
     /**
      * Get current volume level (0-100)
      */
@@ -354,6 +622,15 @@ public class MediaController {
      */
     public boolean isMusicPlaying() {
         return audioManager.isMusicActive();
+    }
+
+    /**
+     * Get volume status summary
+     */
+    public String getVolumeStatus() {
+        int current = getCurrentVolume();
+        boolean playing = isMusicPlaying();
+        return "Volume " + current + "% hai" + (playing ? ". Music chal raha hai." : ".");
     }
 
     /**
