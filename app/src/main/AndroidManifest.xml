@@ -201,6 +201,27 @@
             </intent-filter>
         </receiver>
 
+        <!-- SOS Emergency Receiver -->
+        <receiver
+            android:name=".receiver.SOSReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.rsassistant.TRIGGER_SOS" />
+                <action android:name="android.intent.action.SOS" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Reminder Receiver -->
+        <receiver
+            android:name=".receiver.ReminderReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.rsassistant.REMINDER" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

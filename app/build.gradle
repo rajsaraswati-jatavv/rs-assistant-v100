@@ -10,8 +10,8 @@ android {
         applicationId "com.rsassistant"
         minSdk 24
         targetSdk 34
-        versionCode 102
-        versionName "10.2"
+        versionCode 104
+        versionName "10.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,7 +35,6 @@ dependencies {
     
     // ML Kit for Face Detection
     implementation 'com.google.mlkit:face-detection:16.1.5'
-    // Hand gesture recognition not available in public ML Kit - using touch gestures instead
     
     // CameraX
     implementation 'androidx.camera:camera-core:1.3.1'
@@ -48,6 +47,13 @@ dependencies {
     
     // JSON
     implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // WorkManager for Background Tasks
+    implementation 'androidx.work:work-runtime:2.9.0'
+    
+    // Lifecycle components
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-common-java8:2.7.0'
     
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

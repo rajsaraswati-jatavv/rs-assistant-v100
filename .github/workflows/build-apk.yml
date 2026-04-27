@@ -1,4 +1,4 @@
-name: Build and Release APK v102
+name: Build and Release APK v104
 
 on:
   push:
@@ -28,67 +28,93 @@ jobs:
 
     - name: Rename APK
       run: |
-        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v102.apk || true
+        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v104.apk || true
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: RS-Assistant-v102
-        path: RS-Assistant-v102.apk
+        name: RS-Assistant-v104
+        path: RS-Assistant-v104.apk
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: success()
       with:
-        tag_name: v102
-        name: RS Assistant v102 - Z.AI Fix & Demo Mode
+        tag_name: v104
+        name: RS Assistant v104 - ULTIMATE AI Assistant with SOS & Smart Features
         body: |
-          ## RS Assistant v102 - LATEST VERSION
+          ## RS Assistant v104 - THE MOST POWERFUL VERSION! 🚀🚀🚀
 
-          AI Voice Assistant for Android with COMPLETE phone control.
+          AI Voice Assistant with COMPLETE phone control + Emergency SOS + Smart Features!
 
-          ### 🆕 FIXED in v102
-          - **Z.AI Connection Fixed** - Demo mode works instantly!
-          - **Instant Login** - No server dependency
-          - **All Features Work** - Volume, Power, Lock, Camera, etc.
+          ### 🆕 NEW in v104
+          - **🆘 Emergency SOS System** - Send location to emergency contact instantly!
+          - **🧠 Smart Assistant Manager** - Auto-reply, smart suggestions, custom commands
+          - **⏰ Reminder System** - Set reminders by voice!
+          - **📍 Location Sharing** - Share your location in emergencies
+          - **💬 Auto-Reply** - Context-aware auto responses
+          - **🎯 Custom Commands** - Create your own voice shortcuts
+          - **📊 System Info** - Check device performance
 
-          ### ✨ Features
-          - **Volume Control** - "Volume jyada karo" / "Volume kam karo"
-          - **Lock Screen** - "Lock karo" / "Screen lock"
-          - **Power Off** - "Power off karo" / "Phone band karo"
-          - **Silent/Vibrate Mode** - "Silent mode" / "Vibrate mode"
-          - **Media Controls** - "Play/Pause" / "Next song" / "Previous song"
-          - **Camera Control** - "Camera kholo" / "Photo lelo"
-          - **Flashlight** - "Torch on" / "Torch off"
-          - **Phone Calls** - "Call karo"
-          - **Messages** - "Message bhejo"
-          - **Time** - "Time batao"
-          - **WiFi/Bluetooth** - "WiFi settings" / "Bluetooth settings"
+          ### ✨ All Features
+          **Phone Control:**
+          - Volume Control (up/down/mute/full)
+          - Lock Screen
+          - Power Off / Restart
+          - Silent/Vibrate Mode
+          - Media Controls (Play/Pause/Next/Previous)
+          
+          **Emergency Features:**
+          - 🆘 SOS Button - Instant emergency alert
+          - 📍 Location Share with GPS
+          - 📞 Auto SMS to emergency contact
+          
+          **Smart Features:**
+          - Time-based suggestions
+          - Custom voice commands
+          - Action history
+          - Auto-reply system
+          
+          **Other Controls:**
+          - Camera & Flashlight
+          - WiFi & Bluetooth
+          - Calls & SMS
+          - Time & Alarms
+          - Jokes & Weather info
 
           ### Voice Commands (Hindi/English)
+          **Emergency:**
+          - "SOS" / "Emergency" / "मदद" - Trigger emergency SOS
+          
           **Volume & Sound:**
-          - "Volume jyada karo" / "Volume up" - Increase volume
-          - "Volume kam karo" / "Volume down" - Decrease volume
-          - "Volume full" / "Volume max" - Maximum volume
-          - "Mute karo" / "Silent mode" - Mute/Silent
-          - "Vibrate mode" - Set vibrate mode
-
+          - "Volume jyada karo" / "Volume up"
+          - "Volume kam karo" / "Volume down"
+          - "Mute karo" / "Silent mode"
+          
           **Phone Control:**
-          - "Lock karo" / "Screen lock" - Lock screen
-          - "Power off karo" - Power menu
-          - "Restart karo" - Restart phone
+          - "Lock karo" / "Screen lock"
+          - "Power off karo"
+          - "Restart karo"
+          
+          **AI Conversations:**
+          - "Hello" / "Namaste"
+          - "Help" / "Madad"
+          - "Joke sunao" - Hear a joke
+          - "Kya kar sakte ho" - What can you do
 
           ### Requirements
           - Android 7.0 (API 24) or higher
           - Grant ALL permissions
           - Enable Accessibility Service
           - Enable Device Admin
+          - Disable Battery Optimization
+          - Set Emergency Contact in Settings
 
           ### Download
-          **RS-Assistant-v102.apk** - Latest version
+          **RS-Assistant-v104.apk** - Ultimate version with all features!
 
         files: |
-          RS-Assistant-v102.apk
+          RS-Assistant-v104.apk
         draft: false
         prerelease: false
       env:

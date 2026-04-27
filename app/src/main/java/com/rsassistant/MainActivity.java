@@ -1,8 +1,6 @@
 package com.rsassistant;
 
 import android.Manifest;
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -12,7 +10,6 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -24,14 +21,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.rsassistant.ai.SmartAssistantManager;
+import com.rsassistant.ai.ZAIChatManager;
 import com.rsassistant.auth.OAuthManager;
 import com.rsassistant.service.VoiceRecognitionService;
 import com.rsassistant.util.CommandProcessor;
 import com.rsassistant.util.DeviceControlManager;
 import com.rsassistant.util.PermissionHelper;
-import com.rsassistant.util.RSDeviceAdminReceiver;
+import com.rsassistant.worker.UpdateReminderWorker;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener, OAuthManager.OAuthCallback {
@@ -44,10 +44,12 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private ImageButton voiceButton;
     private TextView statusText, resultText;
-    private Button settingsButton, cameraButton, loginButton, enableAdminButton, enableBatteryButton;
+    private Button settingsButton, cameraButton, loginButton, enableAdminButton, enableBatteryButton, sosButton;
 
     private TextToSpeech textToSpeech;
     private OAuthManager oauthManager;
+    private ZAIChatManager chatManager;
+    private SmartAssistantManager smartManager;
     private CommandProcessor commandProcessor;
     private DeviceControlManager deviceControl;
     private boolean isListening = false;
@@ -62,8 +64,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         initServices();
         checkAllPermissions();
         startBackgroundService();
+        initUpdateReminders();
         
-        // Handle intent if app was opened via deep link
         handleIntent(getIntent());
     }
 
@@ -74,12 +76,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         handleIntent(intent);
     }
 
-    /**
-     * Handle incoming intents
-     */
     private void handleIntent(Intent intent) {
         if (intent != null && intent.getData() != null) {
-            // Intent handled - connection is automatic now
+            // Intent handled
         }
     }
 
@@ -90,10 +89,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         settingsButton = findViewById(R.id.settingsButton);
         cameraButton = findViewById(R.id.cameraButton);
         loginButton = findViewById(R.id.loginButton);
-        
-        // Enable Admin Button (if exists in layout)
         enableAdminButton = findViewById(R.id.enableAdminButton);
         enableBatteryButton = findViewById(R.id.enableBatteryButton);
+        
+        // SOS Button - may or may not exist in layout
+        sosButton = findViewById(R.id.sosButton);
 
         voiceButton.setOnClickListener(v -> toggleVoiceRecognition());
         settingsButton.setOnClickListener(v -> openSettings());
@@ -106,22 +106,52 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         if (enableBatteryButton != null) {
             enableBatteryButton.setOnClickListener(v -> requestBatteryOptimization());
         }
+        if (sosButton != null) {
+            sosButton.setOnClickListener(v -> triggerSOS());
+        }
     }
 
     private void initServices() {
+        // Text-to-Speech
         textToSpeech = new TextToSpeech(this, this);
+        
+        // OAuth Manager
         oauthManager = new OAuthManager(this);
         oauthManager.setCallback(this);
+        
+        // AI Chat Manager
+        chatManager = new ZAIChatManager(this);
+        chatManager.testConnection(new ZAIChatManager.ConnectionCallback() {
+            @Override
+            public void onConnected() {
+                runOnUiThread(() -> showToast("AI Connected!"));
+            }
+
+            @Override
+            public void onDisconnected(String reason) {
+                runOnUiThread(() -> showToast("AI Offline Mode"));
+            }
+        });
+        
+        // Smart Assistant Manager
+        smartManager = new SmartAssistantManager(this);
+        
+        // Command Processor
         commandProcessor = new CommandProcessor(this);
+        
+        // Device Control
         deviceControl = new DeviceControlManager(this);
 
         updateLoginStatus();
         updateAdminStatus();
         updateBatteryStatus();
     }
+    
+    private void initUpdateReminders() {
+        UpdateReminderWorker.scheduleHourlyReminders(this);
+    }
 
     private void checkAllPermissions() {
-        // Check runtime permissions
         String[] permissions = PermissionHelper.getRequiredPermissions();
         ArrayList<String> needed = new ArrayList<>();
 
@@ -143,12 +173,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             startActivityForResult(intent, REQUEST_OVERLAY);
         }
 
-        // Check battery optimization
         checkBatteryOptimization();
 
-        // Check device admin
         if (!deviceControl.isAdminActive()) {
-            // Auto-request device admin
             requestDeviceAdmin();
         }
     }
@@ -157,7 +184,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
-                // Request battery optimization exemption
                 requestBatteryOptimization();
             }
         }
@@ -179,7 +205,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     startActivityForResult(intent, REQUEST_BATTERY_OPTIMIZATION);
                 } catch (Exception e) {
-                    // Fallback - open battery settings
                     Intent intent = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
                     startActivity(intent);
                 }
@@ -231,8 +256,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             }
         } else if (requestCode == REQUEST_BATTERY_OPTIMIZATION) {
             updateBatteryStatus();
-        } else if (requestCode == REQUEST_OVERLAY) {
-            // Overlay permission result
         } else {
             stopVoiceRecognition();
         }
@@ -271,13 +294,63 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private void processCommand(String command) {
         resultText.setText("\"" + command + "\"");
-
-        String response = commandProcessor.process(command);
-        resultText.setText(response);
-
-        if (ttsInitialized) {
-            speak(response);
+        
+        // Check for SOS command
+        if (command.toLowerCase().contains("sos") || 
+            command.toLowerCase().contains("emergency") ||
+            command.toLowerCase().contains("मदद")) {
+            triggerSOS();
+            return;
         }
+        
+        // Check for custom commands
+        String customAction = smartManager.getCustomCommandAction(command);
+        if (customAction != null) {
+            resultText.setText("Custom: " + customAction);
+            speak(customAction);
+            return;
+        }
+
+        // Process command locally first
+        String response = commandProcessor.process(command);
+        
+        if (response != null && !response.contains("not understand")) {
+            resultText.setText(response);
+            if (ttsInitialized) {
+                speak(response);
+            }
+            smartManager.recordAction(command);
+        } else {
+            // Send to AI for conversation
+            sendToAI(command);
+        }
+    }
+    
+    private void sendToAI(String message) {
+        chatManager.sendMessage(message, new ZAIChatManager.ChatCallback() {
+            @Override
+            public void onResponse(String response) {
+                runOnUiThread(() -> {
+                    resultText.setText(response);
+                    if (ttsInitialized) {
+                        speak(response);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    resultText.setText("Error: " + error);
+                });
+            }
+        });
+    }
+    
+    private void triggerSOS() {
+        smartManager.triggerSOS();
+        resultText.setText("🆘 SOS TRIGGERED! Emergency contact notified.");
+        speak("Emergency SOS activated!");
     }
 
     private void speak(String text) {
@@ -379,6 +452,12 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         updateLoginStatus();
         updateAdminStatus();
         updateBatteryStatus();
+        
+        // Show smart suggestions
+        List<String> suggestions = smartManager.getSmartSuggestions();
+        if (!suggestions.isEmpty()) {
+            statusText.setText(suggestions.get(0));
+        }
     }
 
     @Override
