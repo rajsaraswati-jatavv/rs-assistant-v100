@@ -181,7 +181,7 @@
                 android:layout_marginHorizontal="12dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="16dp"
-                android:text="• Volume / Torch / Camera / WiFi\n• Lock karo / Power off karo\n• Shake ON - Toggle torch by shaking!\n• Show features - Memory & History\n• SOS - Emergency alert"
+                android:text="• Volume / Torch / Camera / WiFi\n• Lock karo / Power off karo\n• Shake ON - Toggle torch by shaking!\n• Show features - Memory + History\n• SOS - Emergency alert"
                 android:textColor="@color/white"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
