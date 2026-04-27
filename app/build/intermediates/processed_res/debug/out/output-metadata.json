@@ -4,7 +4,7 @@
     "type": "PROCESSED_RES",
     "kind": "Directory"
   },
-  "applicationId": "com.rsassistant",
+  "applicationId": "com.rsassistant.debug",
   "variantName": "debug",
   "elements": [
     {
@@ -12,7 +12,7 @@
       "filters": [],
       "attributes": [],
       "versionCode": 105,
-      "versionName": "10.5",
+      "versionName": "10.5-debug",
       "outputFile": "resources-debug.ap_"
     }
   ],

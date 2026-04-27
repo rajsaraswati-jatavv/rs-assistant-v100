@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.rsassistant"
+    package="com.rsassistant.debug"
     android:versionCode="105"
-    android:versionName="10.5" >
+    android:versionName="10.5-debug" >
 
     <uses-sdk
         android:minSdkVersion="24"
@@ -132,10 +132,10 @@
         android:required="false" />
 
     <permission
-        android:name="com.rsassistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:name="com.rsassistant.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.rsassistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+    <uses-permission android:name="com.rsassistant.debug.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
         android:allowBackup="true"
@@ -290,7 +290,7 @@
 
         <provider
             android:name="androidx.startup.InitializationProvider"
-            android:authorities="com.rsassistant.androidx-startup"
+            android:authorities="com.rsassistant.debug.androidx-startup"
             android:exported="false" >
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
@@ -415,7 +415,7 @@
 
         <provider
             android:name="com.google.mlkit.common.internal.MlKitInitProvider"
-            android:authorities="com.rsassistant.mlkitinitprovider"
+            android:authorities="com.rsassistant.debug.mlkitinitprovider"
             android:exported="false"
             android:initOrder="99" />
 

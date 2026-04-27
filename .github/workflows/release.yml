@@ -1,0 +1,149 @@
+name: Release APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name (e.g., 10.5)'
+        required: true
+        default: '10.5'
+      version_code:
+        description: 'Version code (e.g., 105)'
+        required: true
+        default: '105'
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  build-signed-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-home-cache-cleanup: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Check if signing secrets are available
+      - name: Check signing configuration
+        id: check_signing
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ] && [ -n "${{ secrets.KEYSTORE_PASSWORD }}" ] && [ -n "${{ secrets.KEY_ALIAS }}" ] && [ -n "${{ secrets.KEY_PASSWORD }}" ]; then
+            echo "has_signing=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_signing=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Decode and setup keystore if secrets are available
+      - name: Decode Keystore
+        if: steps.check_signing.outputs.has_signing == 'true'
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+          echo "KEYSTORE_PATH=$(pwd)/keystore.jks" >> $GITHUB_ENV
+
+      # Update version in build.gradle
+      - name: Update version
+        run: |
+          sed -i 's/versionCode [0-9]*/versionCode ${{ github.event.inputs.version_code }}/' app/build.gradle
+          sed -i 's/versionName "[^"]*"/versionName "${{ github.event.inputs.version_name }}"/' app/build.gradle
+
+      # Build signed release APK
+      - name: Build Signed Release APK
+        if: steps.check_signing.outputs.has_signing == 'true'
+        run: |
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=$KEYSTORE_PATH \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
+
+      # Build unsigned release APK if no signing secrets
+      - name: Build Unsigned Release APK
+        if: steps.check_signing.outputs.has_signing != 'true'
+        run: ./gradlew assembleRelease
+
+      # Build debug APK as well
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      # Rename APKs with version
+      - name: Rename APKs
+        run: |
+          VERSION=${{ github.event.inputs.version_name }}
+          if [ "${{ steps.check_signing.outputs.has_signing }}" == "true" ]; then
+            mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/rs-assistant-v${VERSION}-signed.apk || true
+          else
+            mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/rs-assistant-v${VERSION}-unsigned.apk || true
+          fi
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/rs-assistant-v${VERSION}-debug.apk
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rs-assistant-debug-v${{ github.event.inputs.version_name }}
+          path: app/build/outputs/apk/debug/rs-assistant-v${{ github.event.inputs.version_name }}-debug.apk
+          retention-days: 90
+
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rs-assistant-release-v${{ github.event.inputs.version_name }}
+          path: |
+            app/build/outputs/apk/release/*.apk
+          retention-days: 90
+
+      - name: Get current date
+        id: date
+        run: echo "DATE=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.version_name }}
+          name: RS Assistant v${{ github.event.inputs.version_name }}
+          body: |
+            ## RS Assistant v${{ github.event.inputs.version_name }}
+            
+            **Release Date:** ${{ steps.date.outputs.DATE }}
+            **Version Code:** ${{ github.event.inputs.version_code }}
+            
+            ### Downloads
+            | File | Description |
+            |------|-------------|
+            | `rs-assistant-v${{ github.event.inputs.version_name }}-debug.apk` | Debug build (for testing) |
+            | `rs-assistant-v${{ github.event.inputs.version_name }}-signed.apk` | Signed release build (for distribution) |
+            
+            ### How to Install
+            1. Download the APK file
+            2. Enable "Install from unknown sources" on your device
+            3. Open the APK file to install
+            
+            ### What's Changed
+            <!-- Add release notes here -->
+          files: |
+            app/build/outputs/apk/debug/rs-assistant-v${{ github.event.inputs.version_name }}-debug.apk
+            app/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Cleanup keystore
+      - name: Cleanup Keystore
+        if: always()
+        run: rm -f keystore.jks
