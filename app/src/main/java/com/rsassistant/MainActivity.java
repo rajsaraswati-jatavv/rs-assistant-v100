@@ -24,10 +24,13 @@ import androidx.core.content.ContextCompat;
 import com.rsassistant.ai.SmartAssistantManager;
 import com.rsassistant.ai.ZAIChatManager;
 import com.rsassistant.auth.OAuthManager;
+import com.rsassistant.gesture.ShakeDetector;
+import com.rsassistant.memory.MemoryManager;
 import com.rsassistant.service.VoiceRecognitionService;
 import com.rsassistant.util.CommandProcessor;
 import com.rsassistant.util.DeviceControlManager;
 import com.rsassistant.util.PermissionHelper;
+import com.rsassistant.util.SystemLevelManager;
 import com.rsassistant.worker.UpdateReminderWorker;
 
 import java.util.ArrayList;
@@ -44,14 +47,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private ImageButton voiceButton;
     private TextView statusText, resultText;
-    private Button settingsButton, cameraButton, loginButton, enableAdminButton, enableBatteryButton;
+    private Button settingsButton, cameraButton, loginButton, enableAdminButton, enableBatteryButton, featuresButton;
 
     private TextToSpeech textToSpeech;
     private OAuthManager oauthManager;
     private ZAIChatManager chatManager;
     private SmartAssistantManager smartManager;
+    private MemoryManager memoryManager;
     private CommandProcessor commandProcessor;
     private DeviceControlManager deviceControl;
+    private SystemLevelManager systemManager;
+    private ShakeDetector shakeDetector;
+    
     private boolean isListening = false;
     private boolean ttsInitialized = false;
 
@@ -62,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         initViews();
         initServices();
+        initShakeDetector();
         checkAllPermissions();
         startBackgroundService();
         initUpdateReminders();
@@ -91,11 +99,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         loginButton = findViewById(R.id.loginButton);
         enableAdminButton = findViewById(R.id.enableAdminButton);
         enableBatteryButton = findViewById(R.id.enableBatteryButton);
+        
+        // Features Button (new)
+        featuresButton = findViewById(R.id.featuresButton);
 
         voiceButton.setOnClickListener(v -> toggleVoiceRecognition());
         settingsButton.setOnClickListener(v -> openSettings());
         cameraButton.setOnClickListener(v -> openCamera());
         loginButton.setOnClickListener(v -> handleLogin());
+        
+        if (featuresButton != null) {
+            featuresButton.setOnClickListener(v -> openFeatures());
+        }
         
         if (enableAdminButton != null) {
             enableAdminButton.setOnClickListener(v -> requestDeviceAdmin());
@@ -108,6 +123,12 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private void initServices() {
         // Text-to-Speech
         textToSpeech = new TextToSpeech(this, this);
+        
+        // Memory Manager
+        memoryManager = MemoryManager.getInstance(this);
+        
+        // System Level Manager
+        systemManager = SystemLevelManager.getInstance(this);
         
         // OAuth Manager
         oauthManager = new OAuthManager(this);
@@ -139,6 +160,30 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         updateLoginStatus();
         updateAdminStatus();
         updateBatteryStatus();
+    }
+    
+    private void initShakeDetector() {
+        shakeDetector = new ShakeDetector(this);
+        shakeDetector.setListener(new ShakeDetector.ShakeListener() {
+            @Override
+            public void onShakeDetected() {
+                runOnUiThread(() -> {
+                    showToast("📳 Shake detected! Torch toggled");
+                });
+            }
+
+            @Override
+            public void onTorchStateChanged(boolean isOn) {
+                runOnUiThread(() -> {
+                    showToast("💡 Torch: " + (isOn ? "ON" : "OFF"));
+                });
+            }
+        });
+        
+        // Auto-start if enabled
+        if (shakeDetector.isEnabled()) {
+            shakeDetector.startDetection();
+        }
     }
     
     private void initUpdateReminders() {
@@ -289,11 +334,62 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private void processCommand(String command) {
         resultText.setText("\"" + command + "\"");
         
+        // Save to memory
+        memoryManager.saveCommand(command, "", true, "voice");
+        
+        // Check for memory commands
+        String lower = command.toLowerCase();
+        
+        if (lower.contains("show feature") || lower.contains("सभी features") || 
+            lower.contains("all features") || lower.contains("memory दिखा")) {
+            openFeatures();
+            return;
+        }
+        
+        if (lower.contains("shake on") || lower.contains("shake enable")) {
+            shakeDetector.setEnabled(true);
+            shakeDetector.startDetection();
+            showToast("📳 Shake detection enabled!");
+            speak("Shake detection enabled! Shake to toggle torch.");
+            return;
+        }
+        
+        if (lower.contains("shake off") || lower.contains("shake disable")) {
+            shakeDetector.setEnabled(false);
+            shakeDetector.stopDetection();
+            showToast("Shake detection disabled");
+            speak("Shake detection disabled");
+            return;
+        }
+        
+        if (lower.contains("torch on") || lower.contains("flashlight on") || 
+            lower.contains("टॉर्च जला")) {
+            systemManager.setTorch(true);
+            showToast("💡 Torch ON");
+            speak("Torch is now on");
+            memoryManager.recordFeatureUse("Flashlight");
+            return;
+        }
+        
+        if (lower.contains("torch off") || lower.contains("flashlight off") || 
+            lower.contains("टॉर्च बुझा")) {
+            systemManager.setTorch(false);
+            showToast("💡 Torch OFF");
+            speak("Torch is now off");
+            return;
+        }
+        
         // Check for SOS command
-        if (command.toLowerCase().contains("sos") || 
-            command.toLowerCase().contains("emergency") ||
-            command.toLowerCase().contains("मदद")) {
+        if (lower.contains("sos") || lower.contains("emergency") || lower.contains("मदद")) {
             triggerSOS();
+            return;
+        }
+        
+        // Check for shortcut
+        MemoryManager.ShortcutRecord shortcut = memoryManager.getShortcut(command);
+        if (shortcut != null) {
+            resultText.setText("🎯 Shortcut: " + shortcut.actionData);
+            speak("Running shortcut");
             return;
         }
         
@@ -314,6 +410,12 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 speak(response);
             }
             smartManager.recordAction(command);
+            
+            // Record feature usage
+            if (lower.contains("volume")) memoryManager.recordFeatureUse("Volume Control");
+            else if (lower.contains("camera")) memoryManager.recordFeatureUse("Camera");
+            else if (lower.contains("wifi")) memoryManager.recordFeatureUse("WiFi");
+            else if (lower.contains("lock")) memoryManager.recordFeatureUse("Lock Screen");
         } else {
             // Send to AI for conversation
             sendToAI(command);
@@ -329,6 +431,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     if (ttsInitialized) {
                         speak(response);
                     }
+                    // Save to memory
+                    memoryManager.saveCommand(message, response, true, "ai_chat");
                 });
             }
 
@@ -336,6 +440,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onError(String error) {
                 runOnUiThread(() -> {
                     resultText.setText("Error: " + error);
+                    memoryManager.saveCommand(message, error, false, "error");
                 });
             }
         });
@@ -345,6 +450,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         smartManager.triggerSOS();
         resultText.setText("🆘 SOS TRIGGERED! Emergency contact notified.");
         speak("Emergency SOS activated!");
+        memoryManager.recordFeatureUse("SOS");
     }
 
     private void speak(String text) {
@@ -359,6 +465,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private void openCamera() {
         startActivity(new Intent(this, CameraActivity.class));
+    }
+    
+    private void openFeatures() {
+        startActivity(new Intent(this, FeaturesScreenActivity.class));
     }
 
     private void handleLogin() {
@@ -447,11 +557,28 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         updateAdminStatus();
         updateBatteryStatus();
         
-        // Show smart suggestions
-        List<String> suggestions = smartManager.getSmartSuggestions();
-        if (!suggestions.isEmpty()) {
-            statusText.setText(suggestions.get(0));
+        // Show predicted commands from memory
+        List<String> predictions = memoryManager.getPredictedCommands();
+        if (!predictions.isEmpty()) {
+            statusText.setText("💡 " + predictions.get(0) + "?");
+        } else {
+            // Show smart suggestions
+            List<String> suggestions = smartManager.getSmartSuggestions();
+            if (!suggestions.isEmpty()) {
+                statusText.setText(suggestions.get(0));
+            }
         }
+        
+        // Start shake detection if enabled
+        if (shakeDetector.isEnabled() && !shakeDetector.isDetecting()) {
+            shakeDetector.startDetection();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Keep shake detection running in background if enabled
     }
 
     @Override

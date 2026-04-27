@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="RS Assistant v104"
+                android:text="RS Assistant v105"
                 android:textColor="@color/white"
                 android:textSize="24sp"
                 android:textStyle="bold"
@@ -147,6 +147,19 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/enableAdminButton" />
 
+            <Button
+                android:id="@+id/featuresButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="8dp"
+                android:text="🧠 Memory & Features"
+                android:textSize="12sp"
+                android:backgroundTint="#9C27B0"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/enableBatteryButton" />
+
             <TextView
                 android:id="@+id/commandsTitle"
                 android:layout_width="0dp"
@@ -168,7 +181,7 @@
                 android:layout_marginHorizontal="12dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="16dp"
-                android:text="• Volume jyada karo / Volume kam karo\n• Lock karo / Screen lock\n• Power off karo\n• Silent mode / Vibrate mode\n• Call / Message / Camera\n• WiFi / Bluetooth / Torch\n• Time / Alarm"
+                android:text="• Volume / Torch / Camera / WiFi\n• Lock karo / Power off karo\n• Shake ON - Toggle torch by shaking!\n• Show features - Memory & History\n• SOS - Emergency alert"
                 android:textColor="@color/white"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -10,8 +10,8 @@ android {
         applicationId "com.rsassistant"
         minSdk 24
         targetSdk 34
-        versionCode 104
-        versionName "10.4"
+        versionCode 105
+        versionName "10.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

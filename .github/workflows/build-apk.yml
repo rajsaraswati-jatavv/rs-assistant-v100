@@ -1,4 +1,4 @@
-name: Build and Release APK v104
+name: Build and Release APK v105
 
 on:
   push:
@@ -28,79 +28,62 @@ jobs:
 
     - name: Rename APK
       run: |
-        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v104.apk || true
+        mv app/build/outputs/apk/debug/*.apk RS-Assistant-v105.apk || true
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: RS-Assistant-v104
-        path: RS-Assistant-v104.apk
+        name: RS-Assistant-v105
+        path: RS-Assistant-v105.apk
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       if: success()
       with:
-        tag_name: v104
-        name: RS Assistant v104 - ULTIMATE AI Assistant with SOS & Smart Features
+        tag_name: v105
+        name: RS Assistant v105 - MEMORY SYSTEM & SHAKE TORCH
         body: |
-          ## RS Assistant v104 - THE MOST POWERFUL VERSION! 🚀🚀🚀
+          ## RS Assistant v105 - SMART MEMORY & GESTURE CONTROL! 🧠📳
 
-          AI Voice Assistant with COMPLETE phone control + Emergency SOS + Smart Features!
+          AI Voice Assistant with Self-Learning Memory & Motorola-style Shake Torch!
 
-          ### 🆕 NEW in v104
-          - **🆘 Emergency SOS System** - Send location to emergency contact instantly!
-          - **🧠 Smart Assistant Manager** - Auto-reply, smart suggestions, custom commands
-          - **⏰ Reminder System** - Set reminders by voice!
-          - **📍 Location Sharing** - Share your location in emergencies
-          - **💬 Auto-Reply** - Context-aware auto responses
-          - **🎯 Custom Commands** - Create your own voice shortcuts
-          - **📊 System Info** - Check device performance
+          ### 🆕 NEW in v105
+          - **🧠 Memory System** - Saves all commands, learns your patterns!
+          - **📳 Shake to Torch** - Shake phone to toggle flashlight (Motorola-style)!
+          - **📊 Feature Memory** - Track usage, favorites, history!
+          - **🎯 Custom Shortcuts** - Create your own voice shortcuts!
+          - **⚡ System-Level Control** - Once set up, works even when app is closed!
+          - **📈 Smart Predictions** - Predicts your next command based on time!
 
-          ### ✨ All Features
+          ### ✨ Memory Features
+          - **Command History** - All commands saved automatically
+          - **Feature Usage Tracking** - See which features you use most
+          - **Favorites** - Mark features as favorites for quick access
+          - **Pattern Learning** - Learns when you use specific commands
+          - **Smart Suggestions** - Time-based predictions
+          - **Custom Shortcuts** - Create voice shortcuts like "goodnight" = silent mode + alarm
+
+          ### 📳 Shake to Torch
+          - **Enable in app or by voice** - "Shake on"
+          - **System-level** - Works even when screen is off!
+          - **Adjustable sensitivity** - Customize shake detection
+          - **Vibration feedback** - Feel when torch toggles
+          - **Just like Motorola!** - True system-level control
+
+          ### Voice Commands
+          **Memory & Features:**
+          - "Show features" - See all features & memory
+          - "Shake on/off" - Toggle shake detection
+          - "Torch on/off" - Control flashlight
+
           **Phone Control:**
-          - Volume Control (up/down/mute/full)
-          - Lock Screen
-          - Power Off / Restart
-          - Silent/Vibrate Mode
-          - Media Controls (Play/Pause/Next/Previous)
-          
-          **Emergency Features:**
-          - 🆘 SOS Button - Instant emergency alert
-          - 📍 Location Share with GPS
-          - 📞 Auto SMS to emergency contact
-          
-          **Smart Features:**
-          - Time-based suggestions
-          - Custom voice commands
-          - Action history
-          - Auto-reply system
-          
-          **Other Controls:**
-          - Camera & Flashlight
-          - WiFi & Bluetooth
-          - Calls & SMS
-          - Time & Alarms
-          - Jokes & Weather info
-
-          ### Voice Commands (Hindi/English)
-          **Emergency:**
-          - "SOS" / "Emergency" / "मदद" - Trigger emergency SOS
-          
-          **Volume & Sound:**
-          - "Volume jyada karo" / "Volume up"
-          - "Volume kam karo" / "Volume down"
-          - "Mute karo" / "Silent mode"
-          
-          **Phone Control:**
+          - "Volume jyada karo" / "Volume kam karo"
           - "Lock karo" / "Screen lock"
           - "Power off karo"
-          - "Restart karo"
-          
-          **AI Conversations:**
-          - "Hello" / "Namaste"
-          - "Help" / "Madad"
-          - "Joke sunao" - Hear a joke
-          - "Kya kar sakte ho" - What can you do
+          - "Silent mode" / "Vibrate mode"
+
+          **Emergency:**
+          - "SOS" / "Emergency" / "मदद"
 
           ### Requirements
           - Android 7.0 (API 24) or higher
@@ -108,13 +91,13 @@ jobs:
           - Enable Accessibility Service
           - Enable Device Admin
           - Disable Battery Optimization
-          - Set Emergency Contact in Settings
+          - Enable Shake Detection for torch feature
 
           ### Download
-          **RS-Assistant-v104.apk** - Ultimate version with all features!
+          **RS-Assistant-v105.apk** - With Memory & Shake Torch!
 
         files: |
-          RS-Assistant-v104.apk
+          RS-Assistant-v105.apk
         draft: false
         prerelease: false
       env:
