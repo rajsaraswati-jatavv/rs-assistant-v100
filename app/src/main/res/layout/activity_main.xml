@@ -153,7 +153,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
                 android:layout_marginTop="8dp"
-                android:text="🧠 Memory & Features"
+                android:text="🧠 Memory + Features"
                 android:textSize="12sp"
                 android:backgroundTint="#9C27B0"
                 app:layout_constraintEnd_toEndOf="parent"
