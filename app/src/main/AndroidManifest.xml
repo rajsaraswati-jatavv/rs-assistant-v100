@@ -88,6 +88,14 @@
     <uses-permission android:name="android.permission.REQUEST_COMPANION_RUN_IN_BACKGROUND" />
     <uses-permission android:name="android.permission.REQUEST_COMPANION_USE_DATA_IN_BACKGROUND" />
     
+    <!-- Automation -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <!-- Health Features -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+
     <!-- Device Admin -->
     <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
     
@@ -145,6 +153,18 @@
             android:name=".FeaturesScreenActivity"
             android:exported="false"
             android:label="Memory + Features"
+            android:theme="@style/Theme.RSAssistant" />
+
+        <activity
+            android:name=".AutomationActivity"
+            android:exported="false"
+            android:label="Automation Rules"
+            android:theme="@style/Theme.RSAssistant" />
+
+        <activity
+            android:name=".HealthActivity"
+            android:exported="false"
+            android:label="Health Dashboard"
             android:theme="@style/Theme.RSAssistant" />
 
         <!-- Voice Recognition Service -->

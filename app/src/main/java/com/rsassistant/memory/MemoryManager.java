@@ -103,7 +103,51 @@ public class MemoryManager extends SQLiteOpenHelper {
             "Lock Screen", "Power Off", "Silent Mode", "Vibrate Mode",
             "Screenshot", "Media Control", "Calls", "SMS", "Alarms",
             "Reminders", "Time", "Date", "Weather", "Jokes", "SOS",
-            "Auto Reply", "Custom Commands", "Shake Torch", "Quick Actions"
+            "Auto Reply", "Custom Commands", "Shake Torch", "Quick Actions",
+            // New System Control Features
+            "Night Mode", "Auto Brightness", "Blue Light Filter",
+            "Auto Rotate", "Screen Rotation", "Portrait Mode", "Landscape Mode",
+            "Battery Stats", "Battery Saver", "Battery Level", "Charging Status",
+            "Airplane Mode", "Mobile Data", "Hotspot", "NFC",
+            "Do Not Disturb", "DND Mode", "Priority Mode", "Alarms Only Mode",
+            // Health Features
+            "Heart Rate Monitor", "Step Counter", "Water Reminder", 
+            "Eye Care", "Meditation Guide", "Health Dashboard",
+            // Security Features
+            "App Lock", "Secure Folder", "Anti-Theft", "Intruder Detection",
+            // Utility & Tools Features
+            "Calculator", "Voice Calculator", "Math Operations",
+            "Compass", "Digital Compass", "Direction Finder", "Qibla Direction",
+            "Screen Ruler", "Measurement Tool", "Screen Measurement",
+            "Spirit Level", "Bubble Level", "Surface Level",
+            "QR Scanner", "Barcode Scanner", "QR Code Reader",
+            "Clipboard Manager", "Clipboard History", "Copy Paste",
+            "Timer", "Stopwatch", "Countdown Timer", "Voice Timer",
+            "Screen Flashlight", "White Screen", "Bright Screen",
+            "Magnifier", "Camera Zoom", "Reading Glass", "Magnifying Glass",
+            "Mirror", "Front Camera Mirror", "Selfie Mirror",
+            // Communication Features
+            "Speed Dial", "Quick Dial", "Favorites Dial",
+            "Quick Reply", "SMS Templates", "Auto Reply",
+            "Call Recorder", "Call Recording", "Record Calls",
+            "Spam Blocker", "Block Calls", "Block SMS", "Spam Protection",
+            "Contact Manager", "Voice Contacts", "Add Contact",
+            "Email Reader", "Read Emails", "Email Summary",
+            "WhatsApp Integration", "WhatsApp Message", "WhatsApp Call",
+            "Schedule SMS", "Delayed SMS", "Scheduled Messages",
+            "Call Log", "Call History", "Recent Calls", "Missed Calls",
+            "Emergency Contacts", "ICE Contacts", "Emergency Alert",
+            // Entertainment Features
+            "Music Recognition", "Song Identifier", "Shazam",
+            "FM Radio", "Radio Player", "FM Tuner",
+            "Karaoke Mode", "Lyrics Display", "Sing Along",
+            "Joke Teller", "Random Jokes", "Funny Jokes", "Hindi Jokes",
+            "Fact Teller", "Random Facts", "Interesting Facts", "Fun Facts",
+            "Story Teller", "Bedtime Stories", "Moral Stories", "Fairy Tales",
+            "Horoscope Reader", "Daily Horoscope", "Zodiac Signs", "Rashifal",
+            "Quote of the Day", "Inspirational Quotes", "Motivational Quotes",
+            "Game Launcher", "Voice Games", "Trivia Game", "Number Guessing",
+            "Podcast Player", "Podcast Control", "Listen to Podcasts"
         };
         
         for (String feature : features) {

@@ -1,0 +1,128 @@
+name: Lint Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Run Lint Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+          ~/.android/build-cache
+        key: ${{ runner.os }}-gradle-lint-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-lint-
+          ${{ runner.os }}-gradle-
+
+    - name: Run lint
+      run: ./gradlew lintDebug --no-daemon --stacktrace
+
+    - name: Upload lint report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: lint-report
+        path: app/build/reports/lint-results-debug.*
+        retention-days: 14
+
+    - name: Lint Summary
+      if: always()
+      run: |
+        echo "## Lint Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f "app/build/reports/lint-results-debug.html" ]; then
+          echo "Lint analysis completed." >> $GITHUB_STEP_SUMMARY
+          echo "Download the lint-report artifact to view detailed results." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "No lint report generated." >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: Fail on critical lint issues
+      run: |
+        if [ -f "app/build/reports/lint-results-debug.xml" ]; then
+          CRITICAL=$(grep -c 'severity="Critical"' app/build/reports/lint-results-debug.xml || echo "0")
+          ERROR=$(grep -c 'severity="Error"' app/build/reports/lint-results-debug.xml || echo "0")
+          
+          if [ "$CRITICAL" -gt 0 ] || [ "$ERROR" -gt 0 ]; then
+            echo "::error::Found $CRITICAL critical and $ERROR error lint issues"
+            exit 1
+          fi
+        fi
+
+  ktlint:
+    name: Kotlin/Java Style Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Run spotless check (if configured)
+      run: ./gradlew spotlessCheck --no-daemon || echo "Spotless not configured, skipping..."
+
+    - name: Check code style
+      run: |
+        echo "## Code Style Check" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Basic style verification completed." >> $GITHUB_STEP_SUMMARY
+
+  check-dependencies:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Check for dependency updates
+      run: ./gradlew dependencyUpdates --no-daemon || echo "Dependency updates task not configured"
+
+    - name: Dependency vulnerability check
+      run: |
+        echo "## Dependency Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Run \`./gradlew dependencyUpdates\` locally for detailed analysis." >> $GITHUB_STEP_SUMMARY

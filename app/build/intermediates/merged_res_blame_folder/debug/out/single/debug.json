@@ -1,0 +1,78 @@
+[
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/xml_accessibility_service_config.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/xml/accessibility_service_config.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/drawable_ic_launcher_background.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.rsassistant.app-merged_res-45:/layout_activity_settings.xml.flat",
+        "source": "com.rsassistant.app-main-47:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/xml_device_admin_policy.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/xml/device_admin_policy.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/layout_activity_main.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/layout_activity_settings.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/layout_activity_camera.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/layout/activity_camera.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/drawable_circle_button.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/drawable/circle_button.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/drawable_ic_camera.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/drawable/ic_camera.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/layout_activity_automation.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/layout/activity_automation.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/xml_network_security_config.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/xml/network_security_config.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/drawable_ic_mic.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/drawable/ic_mic.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/drawable_ic_switch.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/drawable/ic_switch.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/drawable_ic_flash.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/drawable/ic_flash.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/layout_activity_health.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/layout/activity_health.xml"
+    },
+    {
+        "merged": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-merged_res-45:/layout_activity_features.xml.flat",
+        "source": "/home/z/.gradle/daemon/8.2/com.rsassistant.app-main-47:/layout/activity_features.xml"
+    }
+]
