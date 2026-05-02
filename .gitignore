@@ -1,15 +1,31 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Build outputs
+/app/build
+
+# Gradle
+.gradle/
+
+# Keystore
+*.jks
+*.keystore
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
